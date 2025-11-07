@@ -7,6 +7,7 @@ export default {
         password: process.env.DB_PASS,
         database: process.env.DB_NAME,
         host: process.env.DB_HOST,
+        port: Number(process.env.DB_PORT),
         dialect: 'mysql',
         timezone: "+09:00",
         logging: false, // 콘솔에 SQL 로그 찍기 싫으면 false
@@ -16,6 +17,7 @@ export default {
         password: '1234',
         database: 'love_world_test',
         host: '127.0.0.1',
+        port: '3306',
         dialect: 'mysql',
         timezone: "+09:00",
     },
@@ -24,6 +26,7 @@ export default {
         password: process.env.DB_PASS,
         database: process.env.DB_NAME,
         host: process.env.DB_HOST,
+        port: Number(process.env.DB_PORT),
         dialect: 'mysql',
         timezone: "+09:00",
     },
