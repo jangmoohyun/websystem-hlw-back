@@ -1,4 +1,3 @@
-import createError from 'http-errors';
 import express from 'express';
 import path, { dirname, join } from 'path';
 import cookieParser from 'cookie-parser';
@@ -10,6 +9,8 @@ const __dirname = dirname(__filename);
 
 import indexRouter from './routes/index.js';
 import usersRouter from './routes/userRouter.js';
+import { notFound } from './middleware/notFound.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
 
@@ -26,18 +27,7 @@ app.use(express.static(join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
-// catch 404 and forward to error handler
-app.use((req, res, next) => {
-    next(createError(404));
-});
-
-// error handler
-const errorHandler = (err, req, res) => {
-    res.locals.message = err?.message ?? 'Internal Server Error';
-    res.locals.error = req.app.get('env') === 'development' ? err : {};
-    res.status(err?.status ?? 500);
-    res.render('error'); // 뷰 안 쓰면 아래 JSON 버전 사용
-};
+app.use(notFound);
 
 app.use(errorHandler);
 
