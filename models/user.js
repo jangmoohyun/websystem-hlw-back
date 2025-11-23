@@ -6,6 +6,7 @@ export default (sequelize, DataTypes) => {
                 type: DataTypes.UUID,
                 allowNull: false,
                 primaryKey: true,
+                defaultValue: DataTypes.UUIDV4,
             },
             email: {
                 type: DataTypes.STRING(100),
@@ -27,7 +28,7 @@ export default (sequelize, DataTypes) => {
         }
     );
 
-    // 연관관계 설정 (예: User.hasMany(Progress))
+    // 연관관계 설정
     User.associate = (models) => {
         User.hasMany(models.Progress, { foreignKey: 'userId', onDelete: 'CASCADE' });
     };

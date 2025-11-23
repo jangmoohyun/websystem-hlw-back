@@ -14,4 +14,14 @@ export const UserErrorCode = {
         status: 401,
         message: '이메일 또는 비밀번호가 올바르지 않습니다.',
     },
+    DUPLICATE_NICKNAME: {
+        code: 'USER_DUPLICATE_NICKNAME',
+        status: 409,
+        message: '이미 사용 중인 닉네임입니다.',
+    },
+    FORBIDDEN: {
+        code: 'USER_FORBIDDEN',
+        status: 403,
+        message: '해당 작업을 수행할 권한이 없습니다.',
+    },
 };
