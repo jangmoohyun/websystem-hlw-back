@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import { sequelize } from '../db';
+import { sequelize } from '../db/index.js';
 
 // 개별 모델 import
 import userModel from './user.js';
