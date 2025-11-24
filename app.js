@@ -9,6 +9,7 @@ const __dirname = dirname(__filename);
 
 import indexRouter from './routes/index.js';
 import usersRouter from './routes/userRouter.js';
+import storyRouter from './routes/storyRouter.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -20,6 +21,7 @@ const app = express();
 // DB 연결 & 모델 sync
 (async () => {
     try {
+        // await connectDB();
         await db.sequelize.sync(); // 실제 테이블 생성/동기화
         console.log('✅ Sequelize 모델 sync 완료');
     } catch (err) {
@@ -39,6 +41,7 @@ app.use(express.static(join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/stories', storyRouter);
 
 app.use(notFound);
 
