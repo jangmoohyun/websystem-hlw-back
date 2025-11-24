@@ -8,7 +8,7 @@ const { User } = db;
 // 공통: id로 유저 조회 (비밀번호 제외)
 export const findUserById = async (id) => {
     const user = await User.findByPk(id, {
-        attributes: ['id', 'email', 'nickname', 'avatarUrl', 'bio', 'createdAt', 'updatedAt'],
+        attributes: ['id', 'email', 'nickname', 'createdAt', 'updatedAt'],
     });
 
     if (!user) throw CustomError.from(UserErrorCode.NOT_FOUND);
