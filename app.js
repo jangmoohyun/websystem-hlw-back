@@ -13,21 +13,7 @@ import storyRouter from './routes/storyRouter.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
-import { connectDB } from './db/index.js';
-import db from './models/index.js';
-
 const app = express();
-
-// DB 연결 & 모델 sync
-(async () => {
-    try {
-        // await connectDB();
-        await db.sequelize.sync(); // 실제 테이블 생성/동기화
-        console.log('✅ Sequelize 모델 sync 완료');
-    } catch (err) {
-        console.error('❌ DB 초기화 중 에러:', err);
-    }
-})();
 
 // view engine setup
 app.set('views', join(__dirname, 'views'));
