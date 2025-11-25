@@ -52,8 +52,6 @@ export const updateProfile = async (userId, payload) => {
     }
 
     if (nickname !== undefined) user.nickname = nickname;
-    if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
-    if (bio !== undefined) user.bio = bio;
 
     await user.save();
 

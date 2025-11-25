@@ -30,7 +30,10 @@ export default (sequelize, DataTypes) => {
 
     // 연관관계 설정
     User.associate = (models) => {
-        User.hasMany(models.Progress, { foreignKey: 'userId', onDelete: 'CASCADE' });
+        User.hasMany(models.Progress, {
+            as: 'progresses',
+            foreignKey: 'userId',
+        });
     };
 
     return User;
