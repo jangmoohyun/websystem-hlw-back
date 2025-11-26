@@ -1,0 +1,16 @@
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: love_world         # 생성할 기본 데이터베이스
+      MYSQL_ROOT_PASSWORD: 2025
+      MYSQL_ROOT_HOST: '%'
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql        # 데이터 영속화
+
+volumes:
+  mysql_data:
