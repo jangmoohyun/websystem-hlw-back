@@ -1,5 +1,4 @@
-// service/userService.js
-import db from '../models/index.js'; // models/index.js 에서 { User } export 된다고 가정
+import db from '../models/index.js';
 import { CustomError } from '../utils/customError.js';
 import { UserErrorCode } from '../errors/userErrorCode.js';
 
@@ -53,8 +52,6 @@ export const updateProfile = async (userId, payload) => {
     }
 
     if (nickname !== undefined) user.nickname = nickname;
-    if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
-    if (bio !== undefined) user.bio = bio;
 
     await user.save();
 

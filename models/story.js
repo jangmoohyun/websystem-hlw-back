@@ -30,10 +30,14 @@ export default (sequelize, DataTypes) => {
     );
 
     Story.associate = (models) => {
-        // 1 : 1 (스토리 : 스크립트)
         Story.hasOne(models.Script, {
-            foreignKey: 'storyId',
             as: 'script',
+            foreignKey: 'storyId',
+        });
+
+        Story.hasMany(models.Progress, {
+            as: 'progresses',
+            foreignKey: 'storyId',
         });
     };
 

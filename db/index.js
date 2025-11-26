@@ -18,12 +18,15 @@ export const sequelize = new Sequelize(
     }
 );
 
-// 연결 테스트
-export const connectDB = async () => {
+// DB 연결 + 테이블 생성(synchronize)
+export const initDB = async () => {
     try {
         await sequelize.authenticate();
         console.log('✅ MySQL 연결 성공!');
+
+        await sequelize.sync({ alter: true });
+        console.log('✅ Sequelize 모델과 DB 테이블 동기화 완료!');
     } catch (error) {
-        console.error('❌ MySQL 연결 실패:', error);
+        console.error('❌ DB 초기화 실패:', error);
     }
 };

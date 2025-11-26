@@ -3,32 +3,61 @@ export default (sequelize, DataTypes) => {
         'Progress',
         {
             id: {
-                type: DataTypes.NUMBER,
-                autoIncrement: true,
+                type: DataTypes.BIGINT.UNSIGNED,
                 primaryKey: true,
+                autoIncrement: true,
             },
-            pLike: {
-                type: DataTypes.NUMBER,
+            // 세이브 슬롯 번호 (1~5)
+            slot: {
+                type: DataTypes.TINYINT.UNSIGNED,
                 allowNull: false,
+                defaultValue: 1,
             },
-            cLike: {
-                type: DataTypes.NUMBER,
+            // 현재 스크립트의 줄 인덱스 (0,1,2,...)
+            lineIndex: {
+                type: DataTypes.INTEGER.UNSIGNED,
                 allowNull: false,
-            },
-            jLike: {
-                type: DataTypes.NUMBER,
-                allowNull: false,
+                defaultValue: 0,
             },
         },
         {
-            tableName: 'progresses',
+            tableName: 'progress',
             timestamps: true,
+            indexes: [
+                {
+                    unique: true,
+                    fields: ['user_id', 'slot'],
+                    name: 'uk_user_slot',
+                },
+            ],
         }
     );
 
-    // 연관관계 설정
     Progress.associate = (models) => {
-        Progress.belongsTo(models.User, { foreignKey: 'userId', onDelete: 'CASCADE' });
+        Progress.belongsTo(models.User, {
+            as: 'user',
+            foreignKey: {
+                name: 'userId',
+                field: 'user_id',
+                allowNull: false,
+            },
+            onDelete: 'CASCADE',
+        });
+
+        Progress.belongsTo(models.Story, {
+            as: 'story',
+            foreignKey: {
+                name: 'storyId',
+                field: 'story_id',
+                allowNull: false,
+            },
+            onDelete: 'CASCADE',
+        });
+
+        Progress.hasMany(models.HeroineLike, {
+            as: 'heroineLikes',
+            foreignKey: 'progressId',
+        });
     };
 
     return Progress;
