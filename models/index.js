@@ -9,6 +9,7 @@ import scriptModel from './script.js';
 import heroineModel from './heroine.js';
 import heroineImageModel from './heroineImage.js';
 import heroineLikeModel from './heroineLike.js';
+import blacklistedTokenModel from './blacklistedToken.js';
 
 const db = {};
 
@@ -23,6 +24,7 @@ db.Script = scriptModel(sequelize, DataTypes);
 db.Heroine = heroineModel(sequelize, DataTypes);
 db.HeroineImage = heroineImageModel(sequelize, DataTypes);
 db.HeroineLike = heroineLikeModel(sequelize, DataTypes);
+db.BlacklistedToken = blacklistedTokenModel(sequelize, DataTypes);
 
 // 관계 설정 (associate가 정의되어 있으면 실행)
 Object.keys(db).forEach((modelName) => {

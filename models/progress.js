@@ -19,6 +19,17 @@ export default (sequelize, DataTypes) => {
                 allowNull: false,
                 defaultValue: 0,
             },
+            // 외래키는 associate에서 정의되지만, 인덱스를 위해 명시적으로 추가
+            userId: {
+                type: DataTypes.UUID,
+                allowNull: false,
+                field: 'user_id',
+            },
+            storyId: {
+                type: DataTypes.BIGINT.UNSIGNED,
+                allowNull: false,
+                field: 'story_id',
+            },
         },
         {
             tableName: 'progress',
