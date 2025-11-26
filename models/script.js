@@ -17,11 +17,6 @@ export default (sequelize, DataTypes) => {
                 allowNull: true,
                 comment: '장면 설명',
             },
-            storyId: {
-                type: DataTypes.BIGINT.UNSIGNED,
-                allowNull: false,
-                field: 'story_id',
-            },
         },
         {
             tableName: 'script',
