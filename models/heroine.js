@@ -26,13 +26,13 @@ export default (sequelize, DataTypes) => {
         // 1:N = Heroine : HeroineImage
         Heroine.hasMany(models.HeroineImage, {
             as: 'images',
-            foreignKey: 'heroineId',
+            foreignKey: 'heroine_id',
         });
 
         // 1:N = Heroine : HeroineLike
         Heroine.hasMany(models.HeroineLike, {
             as: 'likes',
-            foreignKey: 'heroineId',
+            foreignKey: 'heroine_id',
         });
     };
 
