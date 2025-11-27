@@ -32,12 +32,12 @@ export default (sequelize, DataTypes) => {
     Story.associate = (models) => {
         Story.hasOne(models.Script, {
             as: 'script',
-            foreignKey: 'storyId',
+            foreignKey: 'story_id',
         });
 
         Story.hasMany(models.Progress, {
             as: 'progresses',
-            foreignKey: 'storyId',
+            foreignKey: 'story_id',
         });
     };
 

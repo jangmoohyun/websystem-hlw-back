@@ -32,7 +32,7 @@ export default (sequelize, DataTypes) => {
     User.associate = (models) => {
         User.hasMany(models.Progress, {
             as: 'progresses',
-            foreignKey: 'userId',
+            foreignKey: 'user_id',
         });
     };
 

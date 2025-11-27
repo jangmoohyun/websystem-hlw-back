@@ -23,13 +23,6 @@ export default (sequelize, DataTypes) => {
         {
             tableName: 'progress',
             timestamps: true,
-            indexes: [
-                {
-                    unique: true,
-                    fields: ['user_id', 'slot'],
-                    name: 'uk_user_slot',
-                },
-            ],
         }
     );
 
@@ -56,7 +49,7 @@ export default (sequelize, DataTypes) => {
 
         Progress.hasMany(models.HeroineLike, {
             as: 'heroineLikes',
-            foreignKey: 'progressId',
+            foreignKey: 'progress_id',
         });
     };
 

@@ -26,7 +26,7 @@ export default (sequelize, DataTypes) => {
 
     Script.associate = (models) => {
         Script.belongsTo(models.Story, {
-            foreignKey: 'storyId',
+            foreignKey: 'story_id',
             as: 'story',
         });
     };
