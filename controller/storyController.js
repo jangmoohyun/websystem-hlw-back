@@ -9,14 +9,15 @@ export const getStories = async (req, res) => {
   });
 };
 
-// 스토리 상세 + 스크립트
+// 스토리 + 히로인 이미지
 export const getStoryById = async (req, res) => {
-  const storyId = Number(req.params.id);
-  const story = await storyService.getStoryById(storyId);
-  res.json({
-    success: true,
-    data: story,
-  });
+    const storyId = Number(req.params.id);
+    const story = await storyService.getStoryWithHeroines(storyId);
+
+    res.json({
+        success: true,
+        data: story,
+    });
 };
 
 // 문제 목록: 해당 스토리와 연결된 문제들을 반환합니다 (관리/프론트에서 사용)

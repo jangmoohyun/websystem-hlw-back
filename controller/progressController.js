@@ -41,3 +41,18 @@ export const loadGame = async (req, res) => {
         data: saveData,
     });
 };
+
+// PATCH /choice
+export const applyChoice = async (req, res) => {
+    const userId = req.user.id;
+    const { slot, storyId, currentIndex, choiceIndex } = req.body;
+
+    const result = await progressService.applyChoice(userId, {
+        slot,
+        storyId,
+        currentIndex,
+        choiceIndex,
+    });
+
+    res.json({ success: true, data: result });
+};

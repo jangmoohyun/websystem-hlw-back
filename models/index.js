@@ -2,10 +2,11 @@ import { DataTypes } from "sequelize";
 import { sequelize } from "../db/index.js";
 
 // 개별 모델 import
-import userModel from "./user.js";
-import progressModel from "./progress.js";
-import storyModel from "./story.js";
-import scriptModel from "./script.js";
+import userModel from './user.js';
+import progressModel from './progress.js';
+import storyModel from './story.js';
+import scriptModel from './script.js';
+import storyHeroineModel from './storyHeroine.js';
 import heroineModel from "./heroine.js";
 import heroineImageModel from "./heroineImage.js";
 import heroineLikeModel from "./heroineLike.js";
@@ -23,6 +24,7 @@ db.User = userModel(sequelize, DataTypes);
 db.Progress = progressModel(sequelize, DataTypes);
 db.Story = storyModel(sequelize, DataTypes);
 db.Script = scriptModel(sequelize, DataTypes);
+db.StoryHeroine = storyHeroineModel(sequelize, DataTypes);
 db.Heroine = heroineModel(sequelize, DataTypes);
 db.HeroineImage = heroineImageModel(sequelize, DataTypes);
 db.HeroineLike = heroineLikeModel(sequelize, DataTypes);
