@@ -1,9 +1,10 @@
+import { getScriptNode } from './scriptService.js';
 import db from '../models/index.js';
 import { CustomError } from '../utils/CustomError.js';
 import { ProgressErrorCode } from '../errors/progressErrorCode.js';
 import { StoryErrorCode } from '../errors/storyErrorCode.js';
 
-const { Progress, Story, HeroineLike, Heroine } = db;
+const { Progress, Story, Script, HeroineLike, Heroine } = db;
 
 // 전체 게임 세이브 슬롯 목록 (1~5)
 export const getSaves = async (userId) => {
@@ -157,5 +158,84 @@ export const loadGame = async (userId, { slot }) => {
             heroineName: hl.heroine?.name ?? null,
             likeValue: hl.likeValue,
         })),
+    };
+};
+
+// 선택지 적용 + 호감도/진행도 업데이트
+export const applyChoice = async (userId, { slot, storyId, currentIndex, choiceIndex }) => {
+    // 1) 세이브 슬롯 찾기
+    const progress = await Progress.findOne({ where: { userId, slot } });
+    if (!progress || progress.storyId !== storyId) {
+        throw CustomError.from(ProgressErrorCode.NOT_FOUND);
+    }
+
+    // 2) 현재 인덱스의 노드 가져오기
+    const node = await getScriptNode(storyId, currentIndex);
+    if (!node || node.type !== 'choice') {
+        throw new CustomError({
+            status: 400,
+            code: 'NOT_CHOICE_NODE',
+            message: '선택지를 처리할 수 없는 위치입니다.',
+        });
+    }
+
+    const choice = node.choices[choiceIndex];
+    if (!choice) {
+        throw new CustomError({
+            status: 400,
+            code: 'INVALID_CHOICE_INDEX',
+            message: '유효하지 않은 선택지 입니다.',
+        });
+    }
+
+    const { targetIndex, heroineId, likeDelta = 0 } = choice;
+
+    // 3) 히로인 호감도 업데이트 (heroine_like)
+    if (heroineId && likeDelta !== 0) {
+        const [like] = await HeroineLike.findOrCreate({
+            where: { progressId: progress.id, heroineId },
+            defaults: { likeValue: 0 },
+        });
+
+        like.likeValue = Math.max(0, like.likeValue + likeDelta);
+        await like.save();
+    }
+
+    // 4) 진행 위치 업데이트
+    progress.lineIndex = targetIndex;
+    await progress.save();
+
+    return {
+        storyId,
+        slot,
+        nextIndex: targetIndex,
+    };
+};
+
+// 다음 스토리로 이동
+export const advanceToNextStory = async (userId, { slot }) => {
+    const progress = await Progress.findOne({ where: { userId, slot } });
+    if (!progress) throw CustomError.from(ProgressErrorCode.NOT_FOUND);
+
+    const currentStory = await Story.findByPk(progress.storyId);
+    if (!currentStory) throw CustomError.from(StoryErrorCode.NOT_FOUND);
+
+    // nextStoryId 없으면 엔딩
+    if (!currentStory.nextStoryId) {
+        return { hasNext: false, message: '엔딩입니다.' };
+    }
+
+    const nextStory = await Story.findByPk(currentStory.nextStoryId);
+
+    // 진행 업데이트 (시작 index = 1)
+    progress.storyId = nextStory.id;
+    progress.lineIndex = 1;
+    await progress.save();
+
+    return {
+        hasNext: true,
+        storyId: nextStory.id,
+        storyCode: nextStory.storyCode,
+        lineIndex: 1,
     };
 };

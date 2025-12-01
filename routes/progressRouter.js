@@ -23,4 +23,10 @@ router.get(
     asyncHandler(progressController.loadGame)
 );
 
+// 선택지 선택 + 호감도 변경
+router.patch(
+    '/choice',
+    asyncHandler(progressController.applyChoice)
+);
+
 export default router;
