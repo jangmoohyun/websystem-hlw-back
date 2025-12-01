@@ -7,6 +7,12 @@ export default (sequelize, DataTypes) => {
                 primaryKey: true,
                 autoIncrement: true,
             },
+            storyCode: {
+                type: DataTypes.STRING(50),
+                allowNull: false,
+                unique: true,
+                comment: '스토리 번호 (예: 1, 2-1, 2-2, 3-1)',
+            },
             title: {
                 type: DataTypes.STRING(255),
                 allowNull: false,
@@ -21,6 +27,11 @@ export default (sequelize, DataTypes) => {
                 type: DataTypes.STRING(500),
                 allowNull: true,
                 comment: '배경 이미지 URL',
+            },
+            nextStoryId: {
+                type: DataTypes.BIGINT.UNSIGNED,
+                allowNull: true,
+                field: 'next_story_id',
             },
         },
         {
@@ -38,6 +49,18 @@ export default (sequelize, DataTypes) => {
         Story.hasMany(models.Progress, {
             as: 'progresses',
             foreignKey: 'story_id',
+        });
+
+        Story.belongsTo(models.Story, {
+            as: 'nextStory',
+            foreignKey: 'next_story_id',
+        });
+
+        Story.belongsToMany(models.Heroine, {
+            through: models.StoryHeroine,
+            as: 'heroines',
+            foreignKey: 'storyId',
+            otherKey: 'heroineId',
         });
     };
 

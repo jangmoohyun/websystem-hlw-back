@@ -9,10 +9,11 @@ export const getStories = async (req, res) => {
     });
 };
 
-// 스토리 상세 + 스크립트
+// 스토리 + 히로인 이미지
 export const getStoryById = async (req, res) => {
     const storyId = Number(req.params.id);
-    const story = await storyService.getStoryById(storyId);
+    const story = await storyService.getStoryWithHeroines(storyId);
+
     res.json({
         success: true,
         data: story,

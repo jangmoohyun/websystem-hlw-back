@@ -34,6 +34,13 @@ export default (sequelize, DataTypes) => {
             as: 'likes',
             foreignKey: 'heroine_id',
         });
+
+        Heroine.belongsToMany(models.Story, {
+            through: models.StoryHeroine,
+            as: 'stories',
+            foreignKey: 'heroineId',
+            otherKey: 'storyId',
+        });
     };
 
     return Heroine;
