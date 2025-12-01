@@ -40,29 +40,39 @@ export default (sequelize, DataTypes) => {
         }
     );
 
-    Story.associate = (models) => {
-        Story.hasOne(models.Script, {
-            as: 'script',
-            foreignKey: 'story_id',
-        });
+  Story.associate = (models) => {
+    Story.hasOne(models.Script, {
+      as: "script",
+      foreignKey: "story_id",
+    });
 
-        Story.hasMany(models.Progress, {
-            as: 'progresses',
-            foreignKey: 'story_id',
-        });
+    Story.hasMany(models.Progress, {
+      as: 'progresses',
+      foreignKey: 'story_id',
+    });
 
-        Story.belongsTo(models.Story, {
-            as: 'nextStory',
-            foreignKey: 'next_story_id',
-        });
+    Story.belongsTo(models.Story, {
+      as: 'nextStory',
+      foreignKey: 'next_story_id',
+    });
 
-        Story.belongsToMany(models.Heroine, {
-            through: models.StoryHeroine,
-            as: 'heroines',
-            foreignKey: 'storyId',
-            otherKey: 'heroineId',
-        });
-    };
-
-    return Story;
+    Story.belongsToMany(models.Heroine, {
+        through: models.StoryHeroine,
+        as: 'heroines',
+        foreignKey: 'storyId',
+        otherKey: 'heroineId',
+    });
+    
+    // 문제(Problem)와 연관 (한 스토리에 여러 문제를 연결할 수 있음)
+    Story.hasMany(models.Problem, {
+      as: "problems",
+      foreignKey: {
+        name: "storyId",
+        field: "story_id",
+        allowNull: true,
+      },
+    });
+  };
+  
+  return Story;
 };

@@ -8,146 +8,149 @@ const { Progress, Story, Script, HeroineLike, Heroine } = db;
 
 // 전체 게임 세이브 슬롯 목록 (1~5)
 export const getSaves = async (userId) => {
-    const saves = await Progress.findAll({
-        where: { userId },
+  const saves = await Progress.findAll({
+    where: { userId },
+    include: [
+      {
+        model: Story,
+        as: "story",
+        attributes: ["id", "title", "image"],
+      },
+      {
+        model: HeroineLike,
+        as: "heroineLikes",
         include: [
-            {
-                model: Story,
-                as: 'story',
-                attributes: ['id', 'title', 'image'],
-            },
-            {
-                model: HeroineLike,
-                as: 'heroineLikes',
-                include: [
-                    {
-                        model: Heroine,
-                        as: 'heroine',
-                        attributes: ['id', 'name'],
-                    },
-                ],
-            },
+          {
+            model: Heroine,
+            as: "heroine",
+            attributes: ["id", "name"],
+          },
         ],
-        order: [['slot', 'ASC']],
-    });
+      },
+    ],
+    order: [["slot", "ASC"]],
+  });
 
-    // 1~5 슬롯 기준으로 정리
-    const slotMap = new Map();
-    saves.forEach((s) => {
-        slotMap.set(s.slot, s);
-    });
+  // 1~5 슬롯 기준으로 정리
+  const slotMap = new Map();
+  saves.forEach((s) => {
+    slotMap.set(s.slot, s);
+  });
 
-    const result = [];
-    for (let slot = 1; slot <= 5; slot++) {
-        const s = slotMap.get(slot);
-        if (!s) {
-            result.push({
-                slot,
-                isEmpty: true,
-                story: null,
-                lineIndex: null,
-                heroineLikes: [],
-                updatedAt: null,
-            });
-        } else {
-            result.push({
-                slot,
-                isEmpty: false,
-                story: {
-                    id: s.storyId,
-                    title: s.story?.title ?? null,
-                    image: s.story?.image ?? null,
-                },
-                lineIndex: s.lineIndex,
-                heroineLikes: s.heroineLikes.map((hl) => ({
-                    heroineId: hl.heroineId,
-                    heroineName: hl.heroine?.name ?? null,
-                    likeValue: hl.likeValue,
-                })),
-                updatedAt: s.updatedAt,
-            });
-        }
+  const result = [];
+  for (let slot = 1; slot <= 5; slot++) {
+    const s = slotMap.get(slot);
+    if (!s) {
+      result.push({
+        slot,
+        isEmpty: true,
+        story: null,
+        lineIndex: null,
+        heroineLikes: [],
+        updatedAt: null,
+      });
+    } else {
+      result.push({
+        slot,
+        isEmpty: false,
+        story: {
+          id: s.storyId,
+          title: s.story?.title ?? null,
+          image: s.story?.image ?? null,
+        },
+        lineIndex: s.lineIndex,
+        heroineLikes: s.heroineLikes.map((hl) => ({
+          heroineId: hl.heroineId,
+          heroineName: hl.heroine?.name ?? null,
+          likeValue: hl.likeValue,
+        })),
+        updatedAt: s.updatedAt,
+      });
     }
+  }
 
-    return result;
+  return result;
 };
 
 // 세이브 저장/덮어쓰기
-export const saveGame = async (userId, { slot, storyId, lineIndex, heroineLikes }) => {
-    if (!slot || slot < 1 || slot > 5) {
-        throw CustomError.from(ProgressErrorCode.INVALID_SLOT);
-    }
+export const saveGame = async (
+  userId,
+  { slot, storyId, lineIndex, heroineLikes }
+) => {
+  if (!slot || slot < 1 || slot > 5) {
+    throw CustomError.from(ProgressErrorCode.INVALID_SLOT);
+  }
 
-    const story = await Story.findByPk(storyId);
-    if (!story) {
-        throw CustomError.from(StoryErrorCode.NOT_FOUND);
-    }
+  const story = await Story.findByPk(storyId);
+  if (!story) {
+    throw CustomError.from(StoryErrorCode.NOT_FOUND);
+  }
 
-    const [progress, created] = await Progress.findOrCreate({
-        where: { userId, slot },
-        defaults: {
-            storyId,
-            lineIndex,
+  const [progress, created] = await Progress.findOrCreate({
+    where: { userId, slot },
+    defaults: {
+      storyId,
+      lineIndex,
+    },
+  });
+
+  if (!created) {
+    progress.storyId = storyId;
+    progress.lineIndex = lineIndex;
+    await progress.save();
+  }
+
+  if (Array.isArray(heroineLikes)) {
+    for (const hl of heroineLikes) {
+      const { heroineId, likeValue } = hl;
+      if (!heroineId) continue;
+
+      const [like, likeCreated] = await HeroineLike.findOrCreate({
+        where: {
+          progressId: progress.id,
+          heroineId,
         },
-    });
+        defaults: {
+          likeValue: likeValue ?? 0,
+        },
+      });
 
-    if (!created) {
-        progress.storyId = storyId;
-        progress.lineIndex = lineIndex;
-        await progress.save();
+      if (!likeCreated) {
+        like.likeValue = likeValue ?? like.likeValue;
+        await like.save();
+      }
     }
+  }
 
-    if (Array.isArray(heroineLikes)) {
-        for (const hl of heroineLikes) {
-            const { heroineId, likeValue } = hl;
-            if (!heroineId) continue;
-
-            const [like, likeCreated] = await HeroineLike.findOrCreate({
-                where: {
-                    progressId: progress.id,
-                    heroineId,
-                },
-                defaults: {
-                    likeValue: likeValue ?? 0,
-                },
-            });
-
-            if (!likeCreated) {
-                like.likeValue = likeValue ?? like.likeValue;
-                await like.save();
-            }
-        }
-    }
-
-    return progress;
+  return progress;
 };
 
 // 세이브 불러오기 (슬롯 기준)
 export const loadGame = async (userId, { slot }) => {
-    if (!slot || slot < 1 || slot > 5) {
-        throw CustomError.from(ProgressErrorCode.INVALID_SLOT);
-    }
+  if (!slot || slot < 1 || slot > 5) {
+    throw CustomError.from(ProgressErrorCode.INVALID_SLOT);
+  }
 
-    const progress = await Progress.findOne({
-        where: { userId, slot },
+  const progress = await Progress.findOne({
+    where: { userId, slot },
+    include: [
+      {
+        model: HeroineLike,
+        as: "heroineLikes",
         include: [
-            {
-                model: HeroineLike,
-                as: 'heroineLikes',
-                include: [
-                    {
-                        model: Heroine,
-                        as: 'heroine',
-                        attributes: ['id', 'name'],
-                    },
-                ],
-            },
+          {
+            model: Heroine,
+            as: "heroine",
+            attributes: ["id", "name"],
+          },
         ],
-    });
+      },
+    ],
+  });
 
-    if (!progress) {
-        throw CustomError.from(ProgressErrorCode.NOT_FOUND);
-    }
+  if (!progress) {
+    throw CustomError.from(ProgressErrorCode.NOT_FOUND);
+  }
 
     return {
         storyId: progress.storyId,
@@ -238,4 +241,53 @@ export const advanceToNextStory = async (userId, { slot }) => {
         storyCode: nextStory.storyCode,
         lineIndex: 1,
     };
+};
+
+// Ensure there is a progress row for the user and story; create fallback if missing
+// progress 레코드를 찾거나 생성합니다.
+// - userId, storyId로 우선 조회
+// - 없으면 해당 user의 아무 existing progress를 반환(있다면 재사용)
+// - 그마저도 없으면 slot=1으로 새로운 progress를 생성합니다.
+export const getOrCreateProgress = async (userId, storyId) => {
+  let progress = await Progress.findOne({ where: { userId, storyId } });
+  if (progress) return progress;
+
+  progress = await Progress.findOne({ where: { userId } });
+  if (progress) return progress;
+
+  const created = await Progress.create({
+    userId,
+    storyId,
+    slot: 1,
+    lineIndex: 0,
+  });
+  return created;
+};
+
+// 호감도(affinity)를 적용합니다.
+// - heroineName으로 heroine을 찾고, 해당 progress의 HeroineLike 행을 생성 또는 갱신합니다.
+// - delta는 증감값(음수 허용)입니다.
+// - 이 함수는 트랜잭션 없이 간단히 동작합니다. 필요 시 상위에서 sequelize.transaction으로 감싸 사용하세요.
+export const applyAffinityChange = async (
+  userId,
+  storyId,
+  heroineName,
+  delta
+) => {
+  const heroine = await Heroine.findOne({ where: { name: heroineName } });
+  if (!heroine) return null;
+
+  const progress = await getOrCreateProgress(userId, storyId);
+
+  const [like, created] = await HeroineLike.findOrCreate({
+    where: { progressId: progress.id, heroineId: heroine.id },
+    defaults: { likeValue: delta ?? 0 },
+  });
+
+  if (!created) {
+    like.likeValue = (like.likeValue ?? 0) + (delta ?? 0);
+    await like.save();
+  }
+
+  return like;
 };
