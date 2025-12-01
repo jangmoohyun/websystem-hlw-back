@@ -1,0 +1,80 @@
+# .gitlab-ci.yml (백엔드 배포용)
+
+stages:
+  - build
+  - deploy
+
+variables:
+  # 이 변수들은 GitLab CI/CD Variables에 등록해야 합니다.
+  AWS_REGION: $AWS_REGION
+  ECS_CLUSTER: $ECS_CLUSTER_NAME
+  ECS_SERVICE: $ECS_SERVICE_NAME
+  ECR_REPOSITORY: $ECR_REPOSITORY
+  CONTAINER_NAME: $CONTAINER_NAME
+  AWS_IAM_ROLE_ARN: $AWS_IAM_ROLE_ARN # 백엔드용 ARN
+
+  # Docker 파일명 및 태그 설정
+  DOCKERFILE: Dockerfile
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA # GitLab에서 제공하는 커밋 해시 사용
+
+# --- Build Stage: Docker 이미지 빌드 및 ECR 푸시 ---
+build_and_push:
+  stage: build
+  image: 
+    # Docker 빌드 및 AWS CLI를 모두 수행할 수 있는 이미지
+    name: docker:20.10.16-dind-alpine3.16 # Docker-in-Docker 환경 사용
+    entrypoint: [""]
+  services:
+    - docker:20.10.16-dind-alpine3.16 # Docker 서비스 활성화
+
+  only:
+    - main # 백엔드 브랜치 master가 아닌, main으로 가정하고 작성합니다. (필요 시 master로 변경)
+  
+  script:
+    # 1. OIDC를 사용하여 임시 AWS 자격 증명 획득 (sts:AssumeRole)
+    # jq 패키지 설치 (JSON 파싱을 위해 필요)
+    - apk add --no-cache curl jq python3 py3-pip
+    - pip install awscli
+    - TEMP_CREDENTIALS=$(aws sts assume-role-with-web-identity --role-arn $AWS_IAM_ROLE_ARN --role-session-name "GitLabBackendSession" --web-identity-token $CI_JOB_JWT --duration-seconds 3600 --output json)
+    - export AWS_ACCESS_KEY_ID=$(echo $TEMP_CREDENTIALS | jq -r '.Credentials.AccessKeyId')
+    - export AWS_SECRET_ACCESS_KEY=$(echo $TEMP_CREDENTIALS | jq -r '.Credentials.SecretAccessKey')
+    - export AWS_SESSION_TOKEN=$(echo $TEMP_CREDENTIALS | jq -r '.Credentials.SessionToken')
+    
+    # 2. ECR 로그인
+    - ECR_REGISTRY=$(aws $AWS_REGION ecr get-login-password | docker login --username AWS --password-stdin $ECR_REPOSITORY)
+
+    # 3. Docker 이미지 빌드 및 태그 설정
+    - docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+    
+    # 4. ECR에 푸시
+    - docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+  artifacts:
+    expire_in: 1 day
+    reports:
+      dotenv: variables.env # 다음 stage에서 사용할 변수를 저장
+    paths:
+      - variables.env # 이미지 URI를 다음 단계로 전달하기 위해 artifacts 사용
+
+# --- Deploy Stage: ECS 서비스 업데이트 ---
+deploy_job:
+  stage: deploy
+  image: amazon/aws-cli:2.15.20 # AWS CLI 이미지만 사용
+  only:
+    - main # 백엔드 브랜치 master가 아닌, main으로 가정하고 작성합니다. (필요 시 master로 변경)
+  dependencies:
+    - build_and_push # 빌드 단계의 결과물(artifacts) 사용
+
+  script:
+    # 1. 환경 변수 로드 (이전 단계에서 저장된 이미지 태그 로드)
+    - source variables.env
+
+    # 2. OIDC를 사용하여 임시 AWS 자격 증명 획득
+    - apk add --no-cache curl jq
+    - TEMP_CREDENTIALS=$(aws sts assume-role-with-web-identity --role-arn $AWS_IAM_ROLE_ARN --role-session-name "GitLabBackendSessionDeploy" --web-identity-token $CI_JOB_JWT --duration-seconds 3600 --output json)
+    - export AWS_ACCESS_KEY_ID=$(echo $TEMP_CREDENTIALS | jq -r '.Credentials.AccessKeyId')
+    - export AWS_SECRET_ACCESS_KEY=$(echo $TEMP_CREDENTIALS | jq -r '.Credentials.SecretAccessKey')
+    - export AWS_SESSION_TOKEN=$(echo $TEMP_CREDENTIALS | jq -r '.Credentials.SessionToken')
+
+    # 3. Task Definition 업데이트 및 서비스 배포
+    - aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition $ECR_REPOSITORY:$IMAGE_TAG --force-new-deployment --region $AWS_REGION
