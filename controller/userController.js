@@ -183,3 +183,10 @@ export const logout = async (req, res) => {
         throw error;
     }
 };
+
+// 유저 페이지 정보 조회
+export const getUserPage = async (req, res) => {
+    const userId = req.user.id; // 인증된 사용자 ID
+    const pageInfo = await userService.getUserPageInfo(userId);
+    res.json({ success: true, data: pageInfo });
+};

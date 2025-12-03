@@ -26,13 +26,20 @@ export default (sequelize, DataTypes) => {
         // 1:N = Heroine : HeroineImage
         Heroine.hasMany(models.HeroineImage, {
             as: 'images',
-            foreignKey: 'heroineId',
+            foreignKey: 'heroine_id',
         });
 
         // 1:N = Heroine : HeroineLike
         Heroine.hasMany(models.HeroineLike, {
             as: 'likes',
+            foreignKey: 'heroine_id',
+        });
+
+        Heroine.belongsToMany(models.Story, {
+            through: models.StoryHeroine,
+            as: 'stories',
             foreignKey: 'heroineId',
+            otherKey: 'storyId',
         });
     };
 

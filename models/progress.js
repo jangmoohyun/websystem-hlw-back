@@ -1,4 +1,5 @@
 export default (sequelize, DataTypes) => {
+
     const Progress = sequelize.define(
         'Progress',
         {
@@ -44,32 +45,33 @@ export default (sequelize, DataTypes) => {
         }
     );
 
-    Progress.associate = (models) => {
-        Progress.belongsTo(models.User, {
-            as: 'user',
-            foreignKey: {
-                name: 'userId',
-                field: 'user_id',
-                allowNull: false,
-            },
-            onDelete: 'CASCADE',
-        });
 
-        Progress.belongsTo(models.Story, {
-            as: 'story',
-            foreignKey: {
-                name: 'storyId',
-                field: 'story_id',
-                allowNull: false,
-            },
-            onDelete: 'CASCADE',
-        });
+  Progress.associate = (models) => {
+    Progress.belongsTo(models.User, {
+      as: "user",
+      foreignKey: {
+        name: "userId",
+        field: "user_id",
+        allowNull: false,
+      },
+      onDelete: "CASCADE",
+    });
 
-        Progress.hasMany(models.HeroineLike, {
-            as: 'heroineLikes',
-            foreignKey: 'progressId',
-        });
-    };
+    Progress.belongsTo(models.Story, {
+      as: "story",
+      foreignKey: {
+        name: "storyId",
+        field: "story_id",
+        allowNull: false,
+      },
+      onDelete: "CASCADE",
+    });
 
-    return Progress;
+    Progress.hasMany(models.HeroineLike, {
+      as: "heroineLikes",
+      foreignKey: "progress_id",
+    });
+  };
+
+  return Progress;
 };

@@ -7,6 +7,12 @@ export default (sequelize, DataTypes) => {
                 primaryKey: true,
                 autoIncrement: true,
             },
+            storyCode: {
+                type: DataTypes.STRING(50),
+                allowNull: false,
+                unique: true,
+                comment: '스토리 번호 (예: 1, 2-1, 2-2, 3-1)',
+            },
             title: {
                 type: DataTypes.STRING(255),
                 allowNull: false,
@@ -29,17 +35,40 @@ export default (sequelize, DataTypes) => {
         }
     );
 
-    Story.associate = (models) => {
-        Story.hasOne(models.Script, {
-            as: 'script',
-            foreignKey: 'storyId',
-        });
+  Story.associate = (models) => {
+    Story.hasOne(models.Script, {
+      as: "script",
+      foreignKey: "story_id",
+    });
 
-        Story.hasMany(models.Progress, {
-            as: 'progresses',
-            foreignKey: 'storyId',
-        });
-    };
+    Story.hasMany(models.Progress, {
+      as: 'progresses',
+      foreignKey: 'story_id',
+      onDelete: 'CASCADE',
+    });
 
-    return Story;
+    Story.belongsTo(models.Story, {
+      as: 'nextStory',
+      foreignKey: 'next_story_id',
+    });
+
+    Story.belongsToMany(models.Heroine, {
+        through: models.StoryHeroine,
+        as: 'heroines',
+        foreignKey: 'storyId',
+        otherKey: 'heroineId',
+    });
+    
+    // 문제(Problem)와 연관 (한 스토리에 여러 문제를 연결할 수 있음)
+    Story.hasMany(models.Problem, {
+      as: "problems",
+      foreignKey: {
+        name: "storyId",
+        field: "story_id",
+        allowNull: true,
+      },
+    });
+  };
+  
+  return Story;
 };

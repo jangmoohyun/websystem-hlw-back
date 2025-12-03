@@ -3,7 +3,7 @@ import { CustomError } from '../utils/customError.js';
 import { UserErrorCode } from '../errors/userErrorCode.js';
 import bcrypt from 'bcrypt';
 
-const { User } = db;
+const { User, Progress, Story, HeroineLike, Heroine } = db;
 
 // 공통: id로 유저 조회 (비밀번호 제외)
 export const findUserById = async (id) => {
@@ -131,4 +131,92 @@ export const removeRefreshToken = async (userId) => {
         user.refreshToken = null;
         await user.save();
     }
+};
+
+// 유저 페이지 정보 조회 (닉네임, progress, heroine_like)
+export const getUserPageInfo = async (userId) => {
+    
+    // 유저 정보 조회 (닉네임 포함)
+    const user = await User.findByPk(userId, {
+        attributes: ['id', 'nickname', 'email', 'createdAt'],
+    });
+    
+    if (!user) {
+        throw CustomError.from(UserErrorCode.NOT_FOUND);
+    }
+    
+    // progress에서 userId로 storyId 가져오기
+    const progresses = await Progress.findAll({
+        where: { userId },
+        attributes: ['id', 'slot', 'lineIndex', 'storyId', 'createdAt', 'updatedAt'],
+        include: [
+            {
+                model: Story,
+                as: 'story',
+                attributes: ['id', 'title', 'content', 'image'],
+            }
+        ],
+        order: [['slot', 'ASC']],
+    });
+    
+    // heroine_like에서 userId로 각 히로인에 대한 호감도 가져오기
+    // progress를 통해 heroine_like에 접근해야 함
+    const heroineLikes = await HeroineLike.findAll({
+        include: [
+            {
+                model: Progress,
+                as: 'progress',
+                where: { userId },
+                attributes: [],
+            },
+            {
+                model: Heroine,
+                as: 'heroine',
+                attributes: ['id', 'name', 'language'],
+            }
+        ],
+        attributes: ['id', 'likeValue', 'heroineId'],
+    });
+    
+    // 히로인별로 호감도 그룹화
+    const heroineLikeMap = {};
+    heroineLikes.forEach(like => {
+        const heroineId = like.heroineId;
+        if (!heroineLikeMap[heroineId]) {
+            heroineLikeMap[heroineId] = {
+                heroine: like.heroine,
+                likes: []
+            };
+        }
+        heroineLikeMap[heroineId].likes.push({
+            id: like.id,
+            likeValue: like.likeValue,
+        });
+    });
+    
+    return {
+        user: {
+            id: user.id,
+            nickname: user.nickname,
+            email: user.email,
+            createdAt: user.createdAt,
+        },
+        progresses: progresses.map(p => ({
+            id: p.id,
+            slot: p.slot,
+            lineIndex: p.lineIndex,
+            story: p.story ? {
+                id: p.story.id,
+                title: p.story.title,
+                content: p.story.content,
+                image: p.story.image,
+            } : null,
+            createdAt: p.createdAt,
+            updatedAt: p.updatedAt,
+        })),
+        heroineLikes: Object.values(heroineLikeMap).map(item => ({
+            heroine: item.heroine,
+            likes: item.likes,
+        })),
+    };
 };
