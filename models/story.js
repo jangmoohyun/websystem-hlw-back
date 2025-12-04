@@ -28,11 +28,6 @@ export default (sequelize, DataTypes) => {
                 allowNull: true,
                 comment: '배경 이미지 URL',
             },
-            nextStoryId: {
-                type: DataTypes.BIGINT.UNSIGNED,
-                allowNull: true,
-                field: 'next_story_id',
-            },
         },
         {
             tableName: 'story',
@@ -49,6 +44,7 @@ export default (sequelize, DataTypes) => {
     Story.hasMany(models.Progress, {
       as: 'progresses',
       foreignKey: 'story_id',
+      onDelete: 'CASCADE',
     });
 
     Story.belongsTo(models.Story, {

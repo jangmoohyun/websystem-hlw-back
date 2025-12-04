@@ -15,11 +15,23 @@ export default (sequelize, DataTypes) => {
             },
             password: {
                 type: DataTypes.STRING(255),
-                allowNull: false,
+                allowNull: true,
             },
             nickname: {
                 type: DataTypes.STRING(30),
                 unique: true,
+            },
+            snsId: {
+                type: DataTypes.STRING(100),
+                allowNull: true,
+            },
+            provider: {
+                type: DataTypes.STRING(20),
+                allowNull: true,
+            },
+            refreshToken: {
+                type: DataTypes.TEXT,
+                allowNull: true,
             },
         },
         {
@@ -33,6 +45,7 @@ export default (sequelize, DataTypes) => {
         User.hasMany(models.Progress, {
             as: 'progresses',
             foreignKey: 'user_id',
+            onDelete: 'CASCADE',
         });
     };
 
