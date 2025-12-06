@@ -25,6 +25,15 @@ export async function runMultipleTestsBase64(
   // testCases 유효성 검사
   if (!Array.isArray(testCases) || testCases.length === 0) return [];
 
+  // Prepare headers; include RapidAPI key/host if provided in env
+  const reqHeaders = { "Content-Type": "application/json" };
+  if (process.env.JUDGE0_API_KEY) {
+    reqHeaders["X-RapidAPI-Key"] = process.env.JUDGE0_API_KEY;
+  }
+  if (process.env.JUDGE0_API_HOST) {
+    reqHeaders["X-RapidAPI-Host"] = process.env.JUDGE0_API_HOST;
+  }
+
   const promises = testCases.map((tc) => {
     const payload = {
       source_code: b64(sourceCode),
@@ -36,13 +45,33 @@ export async function runMultipleTestsBase64(
       `${JUDGE0_URL}/submissions?wait=true&base64_encoded=true`,
       payload,
       {
-        headers: { "Content-Type": "application/json" },
+        headers: reqHeaders,
         timeout: DEFAULT_TIMEOUT,
       }
     );
   });
 
-  const responses = await Promise.all(promises);
+  let responses;
+  try {
+    // DEBUG: log a short preview of the source being sent (decoded)
+    try {
+      const preview = Buffer.from(b64(sourceCode), "base64")
+        .toString("utf8")
+        .slice(0, 1000);
+      console.debug("Judge0Client submitting source preview:", preview);
+    } catch (e) {
+      console.debug("Judge0Client failed to prepare source preview", e);
+    }
+    responses = await Promise.all(promises);
+  } catch (err) {
+    // Bubble up a helpful error with status/response if available
+    if (err.response && err.response.data) {
+      const msg =
+        err.response.data.message || JSON.stringify(err.response.data);
+      throw new Error(`Judge0 request failed: ${msg}`);
+    }
+    throw err;
+  }
   return responses.map((r, i) => {
     const d = r.data ?? {};
     const stdout = d.stdout

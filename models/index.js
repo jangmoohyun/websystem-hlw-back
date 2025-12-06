@@ -2,11 +2,11 @@ import { DataTypes } from "sequelize";
 import { sequelize } from "../db/index.js";
 
 // 개별 모델 import
-import userModel from './user.js';
-import progressModel from './progress.js';
-import storyModel from './story.js';
-import scriptModel from './script.js';
-import storyHeroineModel from './storyHeroine.js';
+import userModel from "./user.js";
+import progressModel from "./progress.js";
+import storyModel from "./story.js";
+import scriptModel from "./script.js";
+import storyHeroineModel from "./storyHeroine.js";
 import heroineModel from "./heroine.js";
 import heroineImageModel from "./heroineImage.js";
 import heroineLikeModel from "./heroineLike.js";
@@ -28,7 +28,7 @@ db.StoryHeroine = storyHeroineModel(sequelize, DataTypes);
 db.Heroine = heroineModel(sequelize, DataTypes);
 db.HeroineImage = heroineImageModel(sequelize, DataTypes);
 db.HeroineLike = heroineLikeModel(sequelize, DataTypes);
-// 문제/테스트케이스 모델 등록 (기존 컨트롤러 호환을 위해 JudgeProblem/JudgeTestcase 별칭도 설정)
+// 문제/테스트케이스 모델 등록
 db.Problem = problemModel(sequelize, DataTypes);
 db.Testcase = testcaseModel(sequelize, DataTypes);
 db.UserCode = userCodeModel(sequelize, DataTypes);

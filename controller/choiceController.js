@@ -1,5 +1,6 @@
 import db from "../models/index.js";
 import * as progressService from "../service/progressService.js";
+import { getScriptNode } from "../service/scriptService.js";
 
 // POST /choices/select 핸들러
 // 요청 바디 형식: { storyId, currentLineIndex, choice: { targetIndex, endIndex, heroineName, affinityDelta, branchStoryId, text } }
@@ -10,44 +11,93 @@ import * as progressService from "../service/progressService.js";
 // 4) 최종적으로 클라이언트에게 action과 네비게이션 정보를 반환합니다.
 
 export const selectChoice = async (req, res) => {
+  // Debug: log incoming payload
+  try {
+    console.log("[selectChoice] incoming body:", JSON.stringify(req.body));
+  } catch (e) {
+    console.log("[selectChoice] incoming body (non-serializable)");
+  }
   // 인증된 사용자 우선 사용. 인증 정보가 없고 개발 모드인 경우 시드된 테스트 사용자로 대체합니다.
   let userId = req.user?.id ?? req.body.userId;
-  if (!userId) {
-    // 개발 편의용: 시드로 생성된 테스트 사용자가 있으면 그 사용자를 사용합니다.
-    // 프로덕션 환경에서는 인증을 필수화하고 이 대체 로직을 제거하세요.
-    const u = await db.User.findOne({
-      where: { email: "branch_tester@example.com" },
-    });
-    if (u) userId = u.id;
-  }
-  if (!userId) {
-    return res.status(400).json({ success: false, message: "userId required" });
+
+  // Development fallback: if provided userId doesn't exist (or absent),
+  // use or create a development user (by email) and use its UUID.
+  const devEmail = process.env.DEV_USER_EMAIL || "dev_user@example.com";
+  if (userId) {
+    const u = await db.User.findByPk(userId);
+    if (!u) {
+      // requested userId not found — fall back to dev user
+      let dev = await db.User.findOne({ where: { email: devEmail } });
+      if (!dev) {
+        dev = await db.User.create({
+          email: devEmail,
+          password: "devpassword",
+          nickname: "dev",
+        });
+      }
+      userId = dev.id;
+    }
+  } else {
+    // no userId provided: ensure dev user exists and use it
+    let dev = await db.User.findOne({ where: { email: devEmail } });
+    if (!dev) {
+      dev = await db.User.create({
+        email: devEmail,
+        password: "devpassword",
+        nickname: "dev",
+      });
+    }
+    userId = dev.id;
   }
 
-  const { storyId, currentLineIndex, choice } = req.body;
+  const { storyId, currentLineIndex, choice, choiceIndex } = req.body;
   if (!choice) {
     return res.status(400).json({ success: false, message: "choice required" });
   }
 
   try {
-    // 1) apply affinity if provided
-    if (choice.heroineName && typeof choice.affinityDelta === "number") {
+    // Prefer canonical choice stored in story.script if currentLineIndex+choiceIndex provided
+    let canonicalChoice = choice;
+    if (
+      typeof currentLineIndex === "number" &&
+      typeof choiceIndex === "number"
+    ) {
+      const node = await getScriptNode(storyId, currentLineIndex);
+      if (node && node.type === "choice" && Array.isArray(node.choices)) {
+        const c = node.choices[choiceIndex];
+        if (c) canonicalChoice = c;
+      }
+    }
+
+    // 1) apply affinity if provided (from canonical choice)
+    if (
+      canonicalChoice?.heroineName &&
+      typeof canonicalChoice?.affinityDelta === "number"
+    ) {
       await progressService.applyAffinityChange(
         userId,
         storyId,
-        choice.heroineName,
-        choice.affinityDelta
+        canonicalChoice.heroineName,
+        canonicalChoice.affinityDelta
       );
     }
 
     // 2) branch to another story if requested
-    if (choice.branchStoryId) {
+    const branchId = canonicalChoice?.branchStoryId ?? null;
+    if (branchId) {
+      // validate branch story exists to avoid FK violations
+      const branchStory = await db.Story.findByPk(branchId);
+      if (!branchStory) {
+        return res
+          .status(400)
+          .json({ success: false, message: "branchStoryId does not exist" });
+      }
       // ensure progress exists and update storyId
       const progress = await progressService.getOrCreateProgress(
         userId,
         storyId
       );
-      progress.storyId = choice.branchStoryId;
+      progress.storyId = branchId;
       progress.lineIndex = 0;
       await progress.save();
 
@@ -55,7 +105,7 @@ export const selectChoice = async (req, res) => {
         success: true,
         result: {
           action: "branch",
-          storyId: choice.branchStoryId,
+          storyId: branchId,
           lineIndex: 0,
         },
       });
