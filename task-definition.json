@@ -4,7 +4,7 @@
         "FARGATE",
         "MANAGED_INSTANCES"
     ],
-    "containerDefinitions": [
+     "containerDefinitions": [
         {
             "cpu": 0,
             "environment": [
