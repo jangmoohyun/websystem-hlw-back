@@ -25,6 +25,16 @@
                     "value": "root"
                 }
             ],
+            "secrets": [
+                {
+                    "name": "GOOGLE_CLIENT_ID",
+                    "valueFrom": "548014438268-lojpi78dajvta9r30c2kenhrbdm6hh1a.apps.googleusercontent.com"
+                },
+                {
+                    "name": "GOOGLE_CLIENT_SECRET",
+                    "valueFrom": "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"
+                }
+            ],
             "environmentFiles": [],
             "essential": true,
             "image": "707733857262.dkr.ecr.ap-northeast-2.amazonaws.com/websystem/hlw",
