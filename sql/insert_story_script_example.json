@@ -1,0 +1,384 @@
+[
+  {
+    "index": 1,
+    "type": "narration",
+    "text": "빈자리 찾으며) \"음... 저기 맨 뒤에 한 자리 남았네.\""
+  },
+  {
+    "index": 2,
+    "type": "narration",
+    "text": "(플레이어가 자리에 앉으려는 순간, 옆자리 익숙한 가방이 눈에 띈다)"
+  },
+  {
+    "index": 3,
+    "type": "narration",
+    "text": "저 가방은...시현이의 가방 같은데...설마"
+  },
+  {
+    "index": 4,
+    "type": "narration",
+    "text": "그 순간 시현이가 자리로 돌아온다."
+  },
+  {
+    "index": 5,
+    "type": "dialogue",
+    "speaker": "이시현",
+    "text": "아 뭐야 너도 같은 수업이었어? 아씨 왜 하필 내 옆자리에 앉는 거야 자리도 많은데."
+  },
+  {
+    "index": 6,
+    "type": "dialogue",
+    "speaker": "플레이어",
+    "text": "아..미안 그냥 뒤가 편해서.. 불편하면 자리 옮길게.."
+  },
+  {
+    "index": 7,
+    "type": "dialogue",
+    "speaker": "이시현",
+    "text": "뭘 또 옮기냐 찐따같이. 그냥 앉아. 대신 아는 척하지 마라"
+  },
+  {
+    "index": 8,
+    "type": "narration",
+    "text": "괜히 잘못한것도 없는데 욕을 먹은 기분이다...얼굴은 참 이쁜데.. 성격은 까칠하단 말이지.."
+  },
+  {
+    "index": 9,
+    "type": "dialogue",
+    "speaker": "교수님",
+    "text": "자 이제 수업 시작하겠습니다. 이번 시간에는 @#@$%!#$..."
+  },
+  {
+    "index": 10,
+    "type": "narration",
+    "text": "수업에 집중해야 하는데.. 점점 무슨 소리인지 귀에 들어오지 않는다..."
+  },
+  {
+    "index": 11,
+    "type": "narration",
+    "text": "으..교수님의 수면 유도 효과는 굉장하군..."
+  },
+  {
+    "index": 12,
+    "type": "narration",
+    "text": "... 점점 눈이 감겨온다 ..."
+  },
+  {
+    "index": 13,
+    "type": "narration",
+    "text": "(잠시 동안 졸다, 정신을 차린다)"
+  },
+  {
+    "index": 14,
+    "type": "narration",
+    "text": "헉. 얼마나 잔거지 벌써 저정도 진도 나갔네... 친구도 없어서 필기 빌려달라 할 사람도 없는데...혹시 시현이한테..? (옆자리 시현이를 조심스레 쳐다본다)"
+  },
+  {
+    "index": 15,
+    "type": "narration",
+    "text": "(졸고있는 시현이의 모습이 보인다)"
+  },
+  {
+    "index": 16,
+    "type": "narration",
+    "text": "애도 졸고 있네...근데 이쁘긴 하다.."
+  },
+  {
+    "index": 17,
+    "type": "narration",
+    "text": "(그순간 시현이 눈을 뜨며 눈이 마주친다.)"
+  },
+  {
+    "index": 18,
+    "type": "narration",
+    "text": "헉."
+  },
+  {
+    "index": 19,
+    "type": "dialogue",
+    "speaker": "이시현",
+    "text": "너 뭐야 음침하게 왜 쳐다보고있는거야"
+  },
+  {
+    "index": 20,
+    "type": "choice",
+    "choices": [
+      {
+        "text": "무..무슨 소리야 우연이거든..",
+        "targetIndex": 100,
+        "endIndex": 102,
+        "heroineName": "이시현",
+        "affinityDelta": -2,
+        "branchStoryId": null
+      },
+      {
+        "text": "자는 모습이 이뻐서 보고 있었어",
+        "targetIndex": 200,
+        "endIndex": 202,
+        "heroineName": "이시현",
+        "affinityDelta": 3,
+        "branchStoryId": null
+      },
+      {
+        "text": "너가 졸고 있길래 깨워줄라 했지..",
+        "targetIndex": 300,
+        "endIndex": 302,
+        "heroineName": "이시현",
+        "affinityDelta": 0,
+        "branchStoryId": null
+      }
+    ]
+  },
+  {
+    "index": 100,
+    "type": "narration",
+    "text": "(이시현) \"뭐래.. 얼마나 잔거지. 벌써 저만큼 나갔네..아씨\""
+  },
+  {
+    "index": 101,
+    "type": "dialogue",
+    "speaker": "교수님",
+    "text": "자 그럼 이번 시간 출석은 지금 내드리는 문제를 푸는것으로 하겠습니다. 수업 끝날 때 까지 제출해 주셔야 출석 인정이 됩니다."
+  },
+  {
+    "index": 102,
+    "type": "narration",
+    "text": "수업 들은게 없는데 벌써 수업이 끝나다니.. 심지어 문제를 풀어야 출석이라니..."
+  },
+  {
+    "index": 200,
+    "type": "narration",
+    "text": "(이시현) \"뭐래.. 얼마나 잔거지. 벌써 저만큼 나갔네..아씨\""
+  },
+  {
+    "index": 201,
+    "type": "dialogue",
+    "speaker": "교수님",
+    "text": "자 그럼 이번 시간 출석은 지금 내드리는 문제를 푸는것으로 하겠습니다. 수업 끝날 때 까지 제출해 주셔야 출석 인정이 됩니다."
+  },
+  {
+    "index": 202,
+    "type": "narration",
+    "text": "수업 들은게 없는데 벌써 수업이 끝나다니.. 심지어 문제를 풀어야 출석이라니..."
+  },
+  {
+    "index": 300,
+    "type": "narration",
+    "text": "(이시현) \"뭐래.. 얼마나 잔거지. 벌써 저만큼 나갔네..아씨\""
+  },
+  {
+    "index": 301,
+    "type": "dialogue",
+    "speaker": "교수님",
+    "text": "자 그럼 이번 시간 출석은 지금 내드리는 문제를 푸는것으로 하겠습니다. 수업 끝날 때 까지 제출해 주셔야 출석 인정이 됩니다."
+  },
+  {
+    "index": 302,
+    "type": "narration",
+    "text": "수업 들은게 없는데 벌써 수업이 끝나다니.. 심지어 문제를 풀어야 출석이라니..."
+  },
+  {
+    "index": 400,
+    "type": "narration",
+    "text": "(문제를 받는다)"
+  },
+  {
+    "index": 401,
+    "type": "narration",
+    "text": "다행히 수업을 안들어도 풀 수 있을 정도로군. 다행이다."
+  },
+  {
+    "index": 402,
+    "type": "dialogue",
+    "speaker": "이시현",
+    "text": "야 너 벌써 다했어? 다했으면 나 좀 도와줘봐"
+  },
+  {
+    "index": 403,
+    "type": "problem",
+    "text": "코딩 문제를 풀어보세요.",
+    "problemKey": "operating-system-problem-1",
+    "successIndex": 500,
+    "failureIndex": 600
+  },
+  {
+    "index": 500,
+    "type": "dialogue",
+    "speaker": "이시현",
+    "text": "오. 보기 보다 믿음직스럽네. 아무튼 고마워"
+  },
+  {
+    "index": 501,
+    "type": "narration",
+    "text": "(호감도 상승)"
+  },
+  {
+    "index": 502,
+    "type": "dialogue",
+    "speaker": "이시현",
+    "text": "그럼 수업도 끝났겠다. 밥이나 먹으러 가볼까"
+  },
+  {
+    "index": 503,
+    "type": "narration",
+    "text": "시현이는 짐을 챙겨 가버렸다."
+  },
+  {
+    "index": 504,
+    "type": "narration",
+    "text": "그렇게 시현이와의 첫 수업이 끝났다. 나름 친해진거 같아서 내심 기분은 좋은걸 성격이 안좋긴 하지만 말이야.."
+  },
+  {
+    "index": 505,
+    "type": "narration",
+    "text": "그럼 다음 수업이 있나? 흠 오늘은 없네. 인제 자유시간이군."
+  },
+  {
+    "index": 506,
+    "type": "narration",
+    "text": "인제 뭐하면 좋을까.."
+  },
+  {
+    "index": 600,
+    "type": "dialogue",
+    "speaker": "이시현",
+    "text": "흥 기대도 안하고 있었어. 됐어 나혼자 할게"
+  },
+  {
+    "index": 601,
+    "type": "narration",
+    "text": "(호감도 변화 없음)"
+  },
+  {
+    "index": 602,
+    "type": "dialogue",
+    "speaker": "이시현",
+    "text": "그럼 수업도 끝났겠다. 밥이나 먹으러 가볼까"
+  },
+  {
+    "index": 603,
+    "type": "narration",
+    "text": "시현이는 짐을 챙겨 가버렸다."
+  },
+  {
+    "index": 604,
+    "type": "narration",
+    "text": "그렇게 시현이와의 첫 수업이 끝났다. 나름 친해진거 같아서 내심 기분은 좋은걸 성격이 안좋긴 하지만 말이야.."
+  },
+  {
+    "index": 605,
+    "type": "narration",
+    "text": "그럼 다음 수업이 있나? 흠 오늘은 없네. 인제 자유시간이군."
+  },
+  {
+    "index": 606,
+    "type": "narration",
+    "text": "인제 뭐하면 좋을까.."
+  },
+  {
+    "index": 507,
+    "type": "choice",
+    "choices": [
+      {
+        "text": "식당",
+        "targetIndex": 800,
+        "endIndex": 802,
+        "heroineName": null,
+        "affinityDelta": 0,
+        "branchStoryId": null
+      },
+      {
+        "text": "도서관",
+        "targetIndex": 900,
+        "endIndex": 902,
+        "heroineName": null,
+        "affinityDelta": 0,
+        "branchStoryId": null
+      },
+      {
+        "text": "동아리방",
+        "targetIndex": 1000,
+        "endIndex": 1002,
+        "heroineName": null,
+        "affinityDelta": 0,
+        "branchStoryId": null
+      }
+    ]
+  },
+  {
+    "index": 607,
+    "type": "choice",
+    "choices": [
+      {
+        "text": "식당",
+        "targetIndex": 800,
+        "endIndex": 802,
+        "heroineName": null,
+        "affinityDelta": 0,
+        "branchStoryId": null
+      },
+      {
+        "text": "도서관",
+        "targetIndex": 900,
+        "endIndex": 902,
+        "heroineName": null,
+        "affinityDelta": 0,
+        "branchStoryId": null
+      },
+      {
+        "text": "동아리방",
+        "targetIndex": 1000,
+        "endIndex": 1002,
+        "heroineName": null,
+        "affinityDelta": 0,
+        "branchStoryId": null
+      }
+    ]
+  },
+  {
+    "index": 800,
+    "type": "narration",
+    "text": "식당으로 향한다..."
+  },
+  {
+    "index": 801,
+    "type": "narration",
+    "text": "(식당 씬 시작)"
+  },
+  {
+    "index": 802,
+    "type": "narration",
+    "text": "(다음 스토리로 연결)"
+  },
+  {
+    "index": 900,
+    "type": "narration",
+    "text": "도서관으로 향한다..."
+  },
+  {
+    "index": 901,
+    "type": "narration",
+    "text": "(도서관 씬 시작)"
+  },
+  {
+    "index": 902,
+    "type": "narration",
+    "text": "(다음 스토리로 연결)"
+  },
+  {
+    "index": 1000,
+    "type": "narration",
+    "text": "동아리방으로 향한다..."
+  },
+  {
+    "index": 1001,
+    "type": "narration",
+    "text": "(동아리방 씬 시작)"
+  },
+  {
+    "index": 1002,
+    "type": "narration",
+    "text": "(다음 스토리로 연결)"
+  }
+]
+

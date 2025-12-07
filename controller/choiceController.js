@@ -10,18 +10,10 @@ import * as progressService from "../service/progressService.js";
 // 4) 최종적으로 클라이언트에게 action과 네비게이션 정보를 반환합니다.
 
 export const selectChoice = async (req, res) => {
-  // 인증된 사용자 우선 사용. 인증 정보가 없고 개발 모드인 경우 시드된 테스트 사용자로 대체합니다.
-  let userId = req.user?.id ?? req.body.userId;
+  // authMiddleware를 통해 req.user가 설정됨
+  const userId = req.user?.id;
   if (!userId) {
-    // 개발 편의용: 시드로 생성된 테스트 사용자가 있으면 그 사용자를 사용합니다.
-    // 프로덕션 환경에서는 인증을 필수화하고 이 대체 로직을 제거하세요.
-    const u = await db.User.findOne({
-      where: { email: "branch_tester@example.com" },
-    });
-    if (u) userId = u.id;
-  }
-  if (!userId) {
-    return res.status(400).json({ success: false, message: "userId required" });
+    return res.status(401).json({ success: false, message: "Authentication required" });
   }
 
   const { storyId, currentLineIndex, choice } = req.body;
