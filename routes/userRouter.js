@@ -16,9 +16,31 @@ router.post('/refresh', asyncHandler(userController.refreshToken));
 router.post('/logout', authMiddleware, asyncHandler(userController.logout));
 
 // 구글 로그인
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google', (req, res, next) => {
+    console.log('🔵 Google OAuth 요청 받음:', req.url);
+    console.log('🔵 환경변수 확인:', {
+        hasClientID: !!process.env.GOOGLE_CLIENT_ID,
+        hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: process.env.GOOGLE_CALLBACK_URL
+    });
+    passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+}, (err, req, res, next) => {
+    if (err) {
+        console.error('❌ Google OAuth 인증 에러:', err);
+        return res.status(500).json({ 
+            success: false, 
+            message: 'Google OAuth 인증 실패',
+            error: err.message 
+        });
+    }
+    next();
+});
+
 router.get('/google/callback', 
-    passport.authenticate('google', { session: false, failureRedirect: '/login' }),
+    (req, res, next) => {
+        console.log('🔵 Google OAuth 콜백 받음:', req.url);
+        passport.authenticate('google', { session: false, failureRedirect: '/login' })(req, res, next);
+    },
     asyncHandler(userController.googleCallback)
 );
 
