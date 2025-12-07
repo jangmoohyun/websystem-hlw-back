@@ -37,6 +37,13 @@ const googleOptions = {
     callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3000/users/google/callback',
 };
 
+// 환경변수 확인 로그 (디버깅용)
+console.log('Google OAuth 설정:', {
+    hasClientID: !!process.env.GOOGLE_CLIENT_ID,
+    hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3000/users/google/callback',
+});
+
 const googleVerify = async (accessToken, refreshToken, profile, done) => {
     console.log('Google profile:', profile);
     try {
@@ -62,6 +69,18 @@ const googleVerify = async (accessToken, refreshToken, profile, done) => {
 
 
 export default (passport) => {
-    passport.use(new GoogleStrategy(googleOptions, googleVerify));
-    passport.use(new JwtStrategy(jwtOptions, jwtVerify));
+    try {
+        if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+            console.error('❌ Google OAuth 환경변수가 설정되지 않았습니다!');
+            console.error('GOOGLE_CLIENT_ID:', !!process.env.GOOGLE_CLIENT_ID);
+            console.error('GOOGLE_CLIENT_SECRET:', !!process.env.GOOGLE_CLIENT_SECRET);
+        } else {
+            console.log('✅ Google OAuth 환경변수 확인 완료');
+        }
+        passport.use(new GoogleStrategy(googleOptions, googleVerify));
+        passport.use(new JwtStrategy(jwtOptions, jwtVerify));
+    } catch (error) {
+        console.error('❌ Passport 전략 설정 실패:', error);
+        throw error;
+    }
 };
