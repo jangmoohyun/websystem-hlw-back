@@ -25,6 +25,16 @@
                     "value": "root"
                 }
             ],
+            "secrets": [
+                {
+                    "name": "GOOGLE_CLIENT_ID",
+                    "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:707733857262:secret:hlw-google-oauth-client-id-usVAMP"
+                },
+                {
+                    "name": "GOOGLE_CLIENT_SECRET",
+                    "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:707733857262:secret:hlw-google-oauth-client-secret-rIixA4"
+                }
+            ],
             "environmentFiles": [],
             "essential": true,
             "image": "707733857262.dkr.ecr.ap-northeast-2.amazonaws.com/websystem/hlw",
