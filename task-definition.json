@@ -10,7 +10,7 @@
             "environment": [
                 {
                     "name": "DB_NAME",
-                    "value": "hlw-db"
+                    "value": "love_world"
                 },
                 {
                     "name": "DB_HOST",
@@ -23,6 +23,28 @@
                 {
                     "name": "DB_USER",
                     "value": "root"
+                },
+                {
+                    "name": "GOOGLE_CALLBACK_URL",
+                    "value": "http://hlw-back-dev-alb-1292379324.ap-northeast-2.elb.amazonaws.com/users/google/callback"
+                },
+                {
+                    "name": "FRONTEND_URL",
+                    "value": "https://d16lvf4xzha7eb.cloudfront.net"
+                }
+            ],
+            "secrets": [
+                {
+                    "name": "GOOGLE_CLIENT_ID",
+                    "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:707733857262:secret:hlw-google-oauth-client-id-usVAMP"
+                },
+                {
+                    "name": "GOOGLE_CLIENT_SECRET",
+                    "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:707733857262:secret:hlw-google-oauth-client-secret-rIixA4"
+                },
+                {
+                    "name": "DB_PASS",
+                    "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:707733857262:secret:hlw-DB_PASSWORD-Z03qP8" 
                 }
             ],
             "secrets": [

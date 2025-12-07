@@ -37,12 +37,20 @@ export const getProblem = async (req, res) => {
 // - 결과는 { passed, testResults } 형태로 반환합니다.
 export const submitCode = async (req, res) => {
   const storyId = Number(req.params.storyId);
-  const { userId, nodeIndex, choiceId, problemId, sourceCode, languageId } =
-    req.body;
-  if (!userId || !sourceCode || !languageId || !problemId) {
+  // authMiddleware를 통해 req.user가 설정됨
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({
+      success: false,
+      error: "Authentication required",
+    });
+  }
+  
+  const { nodeIndex, choiceId, problemId, sourceCode, languageId } = req.body;
+  if (!sourceCode || !languageId || !problemId) {
     return res.status(400).json({
       success: false,
-      error: "userId, sourceCode, languageId, problemId required",
+      error: "sourceCode, languageId, problemId required",
     });
   }
 
