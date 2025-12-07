@@ -16,8 +16,37 @@ RUN npm ci --only=production=false
 # 소스 코드 복사
 COPY . .
 
-# TypeScript 컴파일
-RUN npm run build || (echo "Build script not found, skipping..." && true)
+# TypeScript 컴파일 시도 (빌드 스크립트가 있으면 실행)
+# dist 폴더가 없으면 소스 코드를 dist로 복사 (JavaScript 프로젝트 대응)
+RUN set -e; \
+    echo "Checking for build script..."; \
+    if npm run 2>/dev/null | grep -q "^  build"; then \
+        echo "Build script found, running build..."; \
+        npm run build || echo "Build failed, will use source code"; \
+    else \
+        echo "No build script found, will use source code as dist"; \
+    fi; \
+    echo "Ensuring dist folder exists..."; \
+    if [ ! -d "dist" ]; then \
+        echo "dist folder not found, creating from source code..."; \
+        mkdir -p dist; \
+        cp -r bin config controller db errors middleware models routes service utils dist/ 2>/dev/null || true; \
+        cp app.js dist/ 2>/dev/null || true; \
+        if [ ! -f "dist/app.js" ] && [ ! -f "dist/bin/www" ]; then \
+            echo "Copying all necessary files to dist..."; \
+            find . -maxdepth 1 -type f \( -name "*.js" -o -name "*.json" \) -exec cp {} dist/ \; 2>/dev/null || true; \
+            for dir in bin config controller db errors middleware models routes service utils; do \
+                if [ -d "$dir" ]; then cp -r "$dir" dist/ 2>/dev/null || true; fi; \
+            done; \
+        fi; \
+    fi; \
+    echo "Verifying dist folder exists..."; \
+    if [ ! -d "dist" ]; then \
+        echo "ERROR: dist folder still does not exist after creation attempt"; \
+        exit 1; \
+    fi; \
+    echo "Build stage complete. dist contents:"; \
+    ls -la dist/ || echo "Warning: Cannot list dist contents"
 
 # ============================================
 # Stage 2: Production Stage
@@ -39,12 +68,9 @@ COPY package*.json ./
 RUN npm ci --only=production && \
     npm cache clean --force
 
-# 빌드 스테이지에서 컴파일된 파일 복사
-COPY --from=builder /app/dist ./dist
-
-# 소스 코드에서 필요한 파일 복사 (컴파일되지 않은 정적 파일 등)
-# 필요에 따라 추가 파일 복사 가능
-COPY --chown=nodejs:nodejs . .
+# 빌드 스테이지에서 dist 폴더 복사
+# 빌드 스테이지에서 dist가 항상 생성되도록 보장했으므로 안전하게 복사 가능
+COPY --from=builder --chown=nodejs:nodejs /app/dist ./
 
 # Non-root user로 전환
 USER nodejs

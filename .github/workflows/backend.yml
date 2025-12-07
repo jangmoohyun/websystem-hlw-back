@@ -1,13 +1,10 @@
-# .github/workflows/backend.yml 파일 내용
-
 name: Backend CI/CD to ECS (Mirroring)
 
 on:
   push:
     branches:
-      - main # 미러링 대상 브랜치 (main)에 푸시될 때 실행
+      - main
 
-# 환경 변수 설정
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECS_CLUSTER: ${{ secrets.ECS_CLUSTER_NAME }}
@@ -20,40 +17,50 @@ jobs:
     name: Build, Push, and Deploy
     runs-on: ubuntu-latest
     permissions:
-      id-token: write 
-      contents: read 
+      id-token: write
+      contents: read
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # --- 1단계: AWS 인증 (OIDC를 통해 IAM Role 권한 획득) ---
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # --- 2단계: Docker 빌드 & ECR 로그인 후 Push ---
+      # --- ECR 로그인 ---
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-      
+
+      # --- 이미지 빌드 & 푸시 ---
       - name: Build, tag, and push image to Amazon ECR
+        id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }} # Git 커밋 해시 사용
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . # Dockerfile이 리포지토리 루트에 있어야 함
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
+          # 다음 스텝에서 쓰기 위해 image 출력값으로 추가
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      # --- 3단계: ECS 배포 (최신 이미지로 서비스 업데이트) ---
-      - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      # --- Task definition에 최신 이미지 반영 ---
+      - name: Fill in the new image ID in the ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      # --- ECS 서비스로 배포 (등록 + 서비스 업데이트까지 한 번에) ---
+      - name: Deploy Amazon ECS service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
-          # 새 이미지 URI로 ECS 서비스 업데이트 명령
-          container-name: ${{ env.CONTAINER_NAME }}
-          image: ${{ env.IMAGE_URI }}
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          wait-for-service-stability: true
