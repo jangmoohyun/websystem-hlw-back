@@ -28,11 +28,11 @@
             "secrets": [
                 {
                     "name": "GOOGLE_CLIENT_ID",
-                    "valueFrom": "548014438268-lojpi78dajvta9r30c2kenhrbdm6hh1a.apps.googleusercontent.com"
+                    "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:707733857262:secret:hlw-google-oauth-client-id-usVAMP"
                 },
                 {
                     "name": "GOOGLE_CLIENT_SECRET",
-                    "valueFrom": "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"
+                    "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:707733857262:secret:hlw-google-oauth-client-secret-rIixA4"
                 }
             ],
             "environmentFiles": [],
