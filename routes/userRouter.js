@@ -23,31 +23,16 @@ router.get('/google', (req, res, next) => {
     console.log('🔵 ========== Google OAuth 요청 받음 ==========');
     console.log('🔵 요청 URL:', req.url);
     console.log('🔵 전체 경로:', req.originalUrl);
+    console.log('🔵 요청 메서드:', req.method);
+    console.log('🔵 요청 IP:', req.ip);
     console.log('🔵 환경변수 확인:', {
         hasClientID: !!process.env.GOOGLE_CLIENT_ID,
         hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
         callbackURL: process.env.GOOGLE_CALLBACK_URL
     });
-    try {
-        passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
-    } catch (error) {
-        console.error('❌ Passport authenticate 호출 에러:', error);
-        return res.status(500).json({ 
-            success: false, 
-            message: 'Google OAuth 인증 실패',
-            error: error.message 
-        });
-    }
-}, (err, req, res, next) => {
-    if (err) {
-        console.error('❌ Google OAuth 인증 에러:', err);
-        return res.status(500).json({ 
-            success: false, 
-            message: 'Google OAuth 인증 실패',
-            error: err.message 
-        });
-    }
-    next();
+    
+    // Passport authenticate 실행
+    passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
 });
 
 router.get('/google/callback', 
@@ -67,6 +52,16 @@ router.get('/me/page', authMiddleware, asyncHandler(userController.getUserPage))
 
 // 유저 생성 (회원가입)
 router.post('/', asyncHandler(userController.createUser));
+
+// 테스트 엔드포인트 (디버깅용)
+router.get('/test', (req, res) => {
+    console.log('✅ /users/test 엔드포인트 호출됨');
+    res.json({ 
+        success: true, 
+        message: 'Users router is working',
+        path: req.originalUrl 
+    });
+});
 
 // 유저 조회 - 가장 마지막에 정의 (와일드카드 라우트)
 router.get('/:id', asyncHandler(userController.getUser));
