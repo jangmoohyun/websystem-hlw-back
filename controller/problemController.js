@@ -33,8 +33,8 @@ export const getProblem = async (req, res) => {
 // POST /:storyId/submit-code
 // body: { userId, nodeIndex, choiceId, problemId, sourceCode, languageId }
 // - 프론트에서 제출한 코드를 Judge0로 보내고 각 테스트케이스의 출력과 expected를 비교합니다.
-// - 모든 테스트가 일치하면 pass로 판정하고, 선택지에 설정된 효과(effects) 중 affinity를 적용합니다.
-// - 결과는 { passed, testResults } 형태로 반환합니다.
+// - 모든 테스트가 일치하면 pass로 판정하고, 문제 노드에 정의된 effects(node.meta.effects)를 적용합니다.
+// - 결과는 { passed, testResults, appliedAffinities } 형태로 반환합니다.
 export const submitCode = async (req, res) => {
   const storyId = Number(req.params.storyId);
   const { userId, nodeIndex, choiceId, problemId, sourceCode, languageId } =
@@ -58,10 +58,6 @@ export const submitCode = async (req, res) => {
       .status(404)
       .json({ success: false, error: "스토리가 존재하지 않습니다" });
 
-  // Determine Judge0 language_id:
-  // - prefer languageId from request body if provided
-  // - otherwise derive from the first heroine associated with the story
-  //   by reading `heroine.language` and mapping it to a Judge0 language id.
   let finalLanguageId = languageId;
   if (!finalLanguageId) {
     const heroines = story.heroines || [];
@@ -123,14 +119,36 @@ export const submitCode = async (req, res) => {
       stdout: r.stdout,
       stderr: r.stderr,
       compile: r.compile,
+      status: r.status ?? null,
+      time: r.time ?? null,
+      memory: r.memory ?? null,
       ok,
     };
   });
 
+  // Debug: print grading summary to help find why a correct solution may be
+  // marked as failed. Look for this log in backend console when reproducing.
+  try {
+    console.debug('[submitCode] grading summary', {
+      storyId,
+      problemId,
+      nodeIndex,
+      passed,
+      comparisons: testResults.map((tr) => ({
+        expected_norm: String(tr.expected).replace(/\r?\n/g, '\\n'),
+        stdout_norm: String(tr.stdout ?? '').replace(/\r?\n/g, '\\n'),
+        ok: tr.ok,
+        status: tr.status,
+      })),
+      rawResultsCount: Array.isArray(results) ? results.length : 0,
+    });
+  } catch (e) {
+    // ignore logging errors
+  }
+
+  // 통과 시 문제 노드(meta)에 명시된 affinity 효과 적용
   const appliedAffinities = [];
-  // 만약 통과했다면(그리고 choiceId가 주어졌다면) 해당 choice의 effects 중 affinity를 적용
-  if (passed && choiceId !== undefined && choiceId !== null) {
-    // story.script JSON에서 노드/선택지를 찾아 effects를 적용 (best-effort)
+  if (passed) {
     let nodes = story.script?.line ?? story.script ?? [];
     if (typeof nodes === "string") {
       try {
@@ -142,13 +160,10 @@ export const submitCode = async (req, res) => {
     const node = (nodes || []).find(
       (n) => Number(n.index) === Number(nodeIndex)
     );
-    const choice = node?.choices?.find(
-      (c) => String(c.id) === String(choiceId)
-    );
-    if (choice && Array.isArray(choice.effects)) {
-      for (const eff of choice.effects) {
+    const codeEffects = node?.meta?.effects ?? [];
+    if (Array.isArray(codeEffects)) {
+      for (const eff of codeEffects) {
         if (eff.type === "affinity") {
-          // progressService의 헬퍼로 호감도 적용
           const like = await progressService.applyAffinityChange(
             userId,
             storyId,
@@ -165,8 +180,7 @@ export const submitCode = async (req, res) => {
     }
   }
 
-  // 결과 반환
-  // 저장: 사용자 제출 코드 기록(UserCode)에 저장
+  // 결과 저장: 사용자 제출 코드 기록(UserCode)에 저장 (실패해도 진행)
   try {
     const stdoutCombined = (testResults || [])
       .map((t) => t.stdout ?? "")
@@ -180,7 +194,6 @@ export const submitCode = async (req, res) => {
       content: stdoutCombined,
     });
   } catch (e) {
-    // 기록 실패시 로그만 남기고 진행
     console.warn("Failed to save UserCode", e);
   }
 

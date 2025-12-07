@@ -58,14 +58,11 @@ export default (sequelize, DataTypes) => {
       otherKey: "heroineId",
     });
 
-    // 문제(Problem)와 연관 (한 스토리에 여러 문제를 연결할 수 있음)
-    Story.hasMany(models.Problem, {
+    Story.belongsToMany(models.Problem, {
+      through: models.StoryProblem,
       as: "problems",
-      foreignKey: {
-        name: "storyId",
-        field: "story_id",
-        allowNull: true,
-      },
+      foreignKey: "storyId",
+      otherKey: "problemId",
     });
   };
 

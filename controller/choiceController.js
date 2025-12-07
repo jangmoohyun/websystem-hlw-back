@@ -11,7 +11,7 @@ import { getScriptNode } from "../service/scriptService.js";
 // 4) 최종적으로 클라이언트에게 action과 네비게이션 정보를 반환합니다.
 
 export const selectChoice = async (req, res) => {
-  // Debug: log incoming payload
+  // 디버그: 들어온 요청 바디 로깅
   try {
     console.log("[selectChoice] incoming body:", JSON.stringify(req.body));
   } catch (e) {
@@ -20,13 +20,13 @@ export const selectChoice = async (req, res) => {
   // 인증된 사용자 우선 사용. 인증 정보가 없고 개발 모드인 경우 시드된 테스트 사용자로 대체합니다.
   let userId = req.user?.id ?? req.body.userId;
 
-  // Development fallback: if provided userId doesn't exist (or absent),
-  // use or create a development user (by email) and use its UUID.
+  // 개발 전용 폴백: 전달된 userId가 없거나 존재하지 않으면
+  // 개발용 계정(이메일 기준)을 찾아 사용하거나 새로 생성하여 사용합니다.
   const devEmail = process.env.DEV_USER_EMAIL || "dev_user@example.com";
   if (userId) {
     const u = await db.User.findByPk(userId);
     if (!u) {
-      // requested userId not found — fall back to dev user
+      // 요청된 userId가 DB에 없으면 개발자 계정으로 대체합니다.
       let dev = await db.User.findOne({ where: { email: devEmail } });
       if (!dev) {
         dev = await db.User.create({
@@ -38,7 +38,7 @@ export const selectChoice = async (req, res) => {
       userId = dev.id;
     }
   } else {
-    // no userId provided: ensure dev user exists and use it
+    // userId가 전달되지 않았으면 개발자 계정이 존재하는지 확인하고 사용합니다.
     let dev = await db.User.findOne({ where: { email: devEmail } });
     if (!dev) {
       dev = await db.User.create({
@@ -56,7 +56,7 @@ export const selectChoice = async (req, res) => {
   }
 
   try {
-    // Prefer canonical choice stored in story.script if currentLineIndex+choiceIndex provided
+    // 스크립트에 저장된 canonical choice가 있으면 그것을 우선 사용합니다 (currentLineIndex+choiceIndex가 제공된 경우)
     let canonicalChoice = choice;
     if (
       typeof currentLineIndex === "number" &&
@@ -69,7 +69,7 @@ export const selectChoice = async (req, res) => {
       }
     }
 
-    // 1) apply affinity if provided (from canonical choice)
+    // 1) 히로인 호감도 적용: canonical choice에 호감도 정보가 있으면 적용
     if (
       canonicalChoice?.heroineName &&
       typeof canonicalChoice?.affinityDelta === "number"
@@ -82,17 +82,17 @@ export const selectChoice = async (req, res) => {
       );
     }
 
-    // 2) branch to another story if requested
+    // 2) 분기 처리: canonical choice에 branchStoryId가 있으면 다른 스토리로 분기
     const branchId = canonicalChoice?.branchStoryId ?? null;
     if (branchId) {
-      // validate branch story exists to avoid FK violations
+      // 분기 대상 스토리가 존재하는지 확인하여 FK 오류를 방지
       const branchStory = await db.Story.findByPk(branchId);
       if (!branchStory) {
         return res
           .status(400)
           .json({ success: false, message: "branchStoryId does not exist" });
       }
-      // ensure progress exists and update storyId
+      // progress 레코드가 존재하도록 보장한 뒤 storyId를 분기 대상으로 변경
       const progress = await progressService.getOrCreateProgress(
         userId,
         storyId
@@ -111,7 +111,7 @@ export const selectChoice = async (req, res) => {
       });
     }
 
-    // 3) otherwise, respond with navigation hints (frontend에서 targetIndex를 사용해 위치를 해석)
+    // 3) 그 외에는 네비게이션 힌트를 응답합니다 (프론트는 targetIndex로 위치를 해석)
     return res.json({
       success: true,
       result: {

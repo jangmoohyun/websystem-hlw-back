@@ -55,5 +55,32 @@ export const getStoryWithHeroines = async (storyId) => {
   });
 
   if (!story) throw CustomError.from(StoryErrorCode.NOT_FOUND);
-  return story;
+  // 히로인 별 languageId 매핑
+  const plain = story.toJSON ? story.toJSON() : story;
+
+  const LANGUAGE_NAME_TO_ID = {
+    c: 50,
+    python: 71,
+    java: 91,
+  };
+
+  function mapLangToId(lang) {
+    if (!lang) return null;
+    const s = String(lang).toLowerCase().trim();
+    if (LANGUAGE_NAME_TO_ID[s]) return LANGUAGE_NAME_TO_ID[s];
+    if (s.includes("python")) return 71;
+    if (s.includes("java")) return 91;
+    if (s === "c" || s.includes("c")) return 50;
+    return null;
+  }
+
+  if (Array.isArray(plain.heroines)) {
+    plain.heroines = plain.heroines.map((h) => {
+      const copy = { ...h };
+      copy.languageId = mapLangToId(h.language) ?? null;
+      return copy;
+    });
+  }
+
+  return plain;
 };
