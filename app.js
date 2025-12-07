@@ -39,9 +39,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-// 요청 로깅 미들웨어 (디버깅용)
+// 요청 로깅 미들웨어 (디버깅용) - 라우팅 전에 실행
 app.use((req, res, next) => {
     console.log(`📥 요청 받음: ${req.method} ${req.originalUrl}`);
+    console.log(`📥 요청 헤더:`, {
+        origin: req.headers.origin,
+        referer: req.headers.referer,
+        host: req.headers.host
+    });
     next();
 });
 
@@ -49,8 +54,10 @@ app.use((req, res, next) => {
 app.use(checkTokenBlacklist);
 
 // 라우팅 설정
+console.log('🔧 라우팅 설정 시작');
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+console.log('🔧 /users 라우터 등록 완료');
 app.use('/stories', storyRouter);
 app.use('/progress', progressRouter);
 app.use('/heroines', heroineRouter);
