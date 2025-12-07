@@ -1,6 +1,6 @@
 import { getScriptNode } from './scriptService.js';
 import db from '../models/index.js';
-import { CustomError } from '../utils/CustomError.js';
+import { CustomError } from '../utils/customError.js';
 import { ProgressErrorCode } from '../errors/progressErrorCode.js';
 import { StoryErrorCode } from '../errors/storyErrorCode.js';
 

@@ -1,4 +1,4 @@
-import { CustomError } from '../utils/CustomError.js';
+import { CustomError } from '../utils/customError.js';
 
 export const notFound = (req, res, next) => {
     next(new CustomError({
