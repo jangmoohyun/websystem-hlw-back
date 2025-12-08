@@ -25,13 +25,22 @@ passportConfig(passport);
 app.use(passport.initialize());
 
 // CORS 설정 (프론트엔드 연동을 위해)
-const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-console.log('🌐 CORS 설정:', { frontendUrl });
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://d16lvf4xzha7eb.cloudfront.net",
+];
+console.log("🌐 CORS 설정:", { allowedOrigins });
 app.use(
-    cors({
-        origin: frontendUrl, // 프론트엔드 주소 (Vite 기본 포트)
-        credentials: true, // 쿠키/인증 정보 포함 허용
-    })
+  cors({
+    origin: (origin, callback) => {
+      // origin이 없으면(예: 서버 간 통신, curl 등) 허용
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true, // 쿠키/인증 정보 포함 허용
+  })
 );
 
 app.use(logger("dev"));
