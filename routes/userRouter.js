@@ -37,7 +37,13 @@ router.get('/google', (req, res, next) => {
 
 router.get('/google/callback', 
     (req, res, next) => {
-        console.log('🔵 Google OAuth 콜백 받음:', req.url);
+        console.log('🔵 ========== Google OAuth 콜백 받음 ==========');
+        console.log('🔵 요청 URL:', req.url);
+        console.log('🔵 전체 경로:', req.originalUrl);
+        console.log('🔵 쿼리 파라미터:', req.query);
+        console.log('🔵 환경변수 GOOGLE_CALLBACK_URL:', process.env.GOOGLE_CALLBACK_URL);
+        console.log('🔵 요청 호스트:', req.headers.host);
+        console.log('🔵 요청 프로토콜:', req.protocol);
         passport.authenticate('google', { session: false, failureRedirect: '/login' })(req, res, next);
     },
     asyncHandler(userController.googleCallback)
