@@ -167,6 +167,25 @@ export const submitCode = async (req, res) => {
         }
       }
     }
+    if (appliedAffinities.length === 0) {
+      const defaultHeroine =
+        node?.speaker || (story.heroines && story.heroines[0]?.name) || null;
+      if (defaultHeroine) {
+        try {
+          const like = await progressService.applyAffinityChange(
+            userId,
+            storyId,
+            defaultHeroine,
+            15
+          );
+          appliedAffinities.push({
+            heroine: defaultHeroine,
+            delta: 15,
+            likeValue: like?.likeValue ?? null,
+          });
+        } catch (e) {}
+      }
+    }
   }
 
   // 결과 저장: 사용자 제출 코드 기록(UserCode)에 저장 (실패해도 진행)
