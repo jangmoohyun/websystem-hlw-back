@@ -1,8 +1,8 @@
-import { getScriptNode } from "./scriptService.js";
-import db from "../models/index.js";
-import { CustomError } from "../utils/CustomError.js";
-import { ProgressErrorCode } from "../errors/progressErrorCode.js";
-import { StoryErrorCode } from "../errors/storyErrorCode.js";
+import { getScriptNode } from './scriptService.js';
+import db from '../models/index.js';
+import { CustomError } from '../utils/customError.js';
+import { ProgressErrorCode } from '../errors/progressErrorCode.js';
+import { StoryErrorCode } from '../errors/storyErrorCode.js';
 
 const { Progress, Story, Script, HeroineLike, Heroine } = db;
 
@@ -309,4 +309,108 @@ export const applyAffinityChange = async (
   }
 
   return like;
+};
+
+
+// ===== 엔딩 분기용 유틸 함수들 =====
+
+// line(JSON 배열) + 호감도 배열로, 어느 엔딩 index로 갈지 결정
+// - heroineLikes: [{ heroineId, likeValue }, ...]
+// - threshold: 엔딩 기준 호감도 (기본 80)
+const decideEndingIndex = (nodes, heroineLikes, threshold = 80) => {
+  if (!Array.isArray(nodes)) return null;
+
+  const candidates = (heroineLikes || []).filter(
+    (hl) => (hl.likeValue ?? 0) >= threshold
+  );
+
+  let chosenHeroineId = null;
+
+  if (candidates.length === 0) {
+    // 아무도 기준 이상이 아니면 -> 솔로 엔딩
+    chosenHeroineId = null;
+  } else {
+    // 여러 명이면 likeValue 가장 높은 히로인 1명 선택
+    const best = candidates.reduce((max, cur) =>
+      cur.likeValue > max.likeValue ? cur : max
+    );
+    chosenHeroineId = best.heroineId;
+  }
+
+  let endingNode;
+
+  if (chosenHeroineId === null) {
+    // 솔로 엔딩: solo=true 또는 heroineId 없는 ending 노드
+    endingNode = nodes.find(
+      (n) => n.type === 'ending' && (n.solo === true || n.heroineId == null)
+    );
+  } else {
+    // 히로인 엔딩: heroineId 매칭되는 ending 노드
+    endingNode = nodes.find(
+      (n) => n.type === 'ending' && n.heroineId === chosenHeroineId
+    );
+  }
+
+  return endingNode ? endingNode.index : null;
+};
+
+// 현재 위치에서 type === 'ending' 트리거를 만나면,
+// 각 히로인 호감도 기준으로 실제 엔딩 index로 점프하는 함수
+// - 사용 예: 프론트에서 ending 트리거 도달 시 호출
+export const jumpToEnding = async (userId, { slot, storyId }) => {
+  // 1) progress + heroineLikes 조회
+  const progress = await Progress.findOne({
+    where: { userId, slot, storyId },
+    include: [
+      {
+        model: HeroineLike,
+        as: 'heroineLikes',
+      },
+    ],
+  });
+
+  if (!progress) {
+    throw CustomError.from(ProgressErrorCode.NOT_FOUND);
+  }
+
+  // 2) 해당 story의 전체 스크립트 JSON 가져오기
+  const script = await Script.findOne({
+    where: { storyId },
+    attributes: ['line'],
+  });
+
+  if (!script || !Array.isArray(script.line)) {
+    throw new CustomError({
+      status: 500,
+      code: 'SCRIPT_NOT_FOUND',
+      message: '엔딩 스크립트를 찾을 수 없습니다.',
+    });
+  }
+
+  const nodes = script.line;
+  const heroineLikes = progress.heroineLikes?.map((hl) => ({
+    heroineId: hl.heroineId,
+    likeValue: hl.likeValue,
+  }));
+
+  // 3) 어느 엔딩 index로 갈지 결정
+  const endingIndex = decideEndingIndex(nodes, heroineLikes, 80);
+
+  if (endingIndex == null) {
+    throw new CustomError({
+      status: 500,
+      code: 'ENDING_INDEX_NOT_FOUND',
+      message: '조건에 맞는 엔딩 노드를 찾을 수 없습니다.',
+    });
+  }
+
+  // 4) progress 위치를 엔딩 index로 이동
+  progress.lineIndex = endingIndex;
+  await progress.save();
+
+  return {
+    storyId,
+    slot,
+    nextIndex: endingIndex,
+  };
 };
