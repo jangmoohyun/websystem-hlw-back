@@ -46,11 +46,6 @@ export default (sequelize, DataTypes) => {
       foreignKey: "story_id",
     });
 
-    Story.belongsTo(models.Story, {
-      as: "nextStory",
-      foreignKey: "next_story_id",
-    });
-
     Story.belongsToMany(models.Heroine, {
       through: models.StoryHeroine,
       as: "heroines",

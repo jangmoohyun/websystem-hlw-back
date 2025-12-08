@@ -1,0 +1,126 @@
+{
+    "compatibilities": [
+        "EC2",
+        "FARGATE",
+        "MANAGED_INSTANCES"
+    ],
+     "containerDefinitions": [
+        {
+            "cpu": 0,
+            "environment": [
+                {
+                    "name": "DB_NAME",
+                    "value": "love_world"
+                },
+                {
+                    "name": "DB_HOST",
+                    "value": "hlw-db.cnoy0wqewpgg.ap-northeast-2.rds.amazonaws.com"
+                },
+                {
+                    "name": "DB_PORT",
+                    "value": "3306"
+                },
+                {
+                    "name": "DB_USER",
+                    "value": "root"
+                },
+                {
+                    "name": "GOOGLE_CALLBACK_URL",
+                    "value": "https://d16lvf4xzha7eb.cloudfront.net/users/google/callback"
+                },
+                {
+                    "name": "FRONTEND_URL",
+                    "value": "https://d16lvf4xzha7eb.cloudfront.net"
+                }
+            ],
+            "secrets": [
+                {
+                    "name": "GOOGLE_CLIENT_ID",
+                    "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:707733857262:secret:hlw-google-oauth-client-id-usVAMP"
+                },
+                {
+                    "name": "GOOGLE_CLIENT_SECRET",
+                    "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:707733857262:secret:hlw-google-oauth-client-secret-rIixA4"
+                },
+                {
+                    "name": "DB_PASS",
+                    "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:707733857262:secret:hlw-DB_PASSWORD-Z03qP8" 
+                }
+            ],
+            "environmentFiles": [],
+            "essential": true,
+            "image": "707733857262.dkr.ecr.ap-northeast-2.amazonaws.com/websystem/hlw",
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/websystem-hlw-back",
+                    "awslogs-create-group": "true",
+                    "awslogs-region": "ap-northeast-2",
+                    "awslogs-stream-prefix": "ecs"
+                },
+                "secretOptions": []
+            },
+            "mountPoints": [],
+            "name": "websystem-hlw-back",
+            "portMappings": [
+                {
+                    "appProtocol": "http",
+                    "containerPort": 8080,
+                    "hostPort": 8080,
+                    "name": "websystem-hlw-back-8080-tcp",
+                    "protocol": "tcp"
+                }
+            ],
+            "systemControls": [],
+            "ulimits": [],
+            "volumesFrom": []
+        }
+    ],
+    "cpu": "1024",
+    "enableFaultInjection": false,
+    "executionRoleArn": "arn:aws:iam::707733857262:role/ecsTaskExecutionRole",
+    "family": "websystem-hlw-back",
+    "memory": "3072",
+    "networkMode": "awsvpc",
+    "placementConstraints": [],
+    "registeredAt": "2025-12-04T01:00:07.635Z",
+    "registeredBy": "arn:aws:iam::707733857262:root",
+    "requiresAttributes": [
+        {
+            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+        },
+        {
+            "name": "ecs.capability.execution-role-awslogs"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.ecr-auth"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+        },
+        {
+            "name": "ecs.capability.execution-role-ecr-pull"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+        },
+        {
+            "name": "ecs.capability.task-eni"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+        }
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "revision": 2,
+    "runtimePlatform": {
+        "cpuArchitecture": "X86_64",
+        "operatingSystemFamily": "LINUX"
+    },
+    "status": "ACTIVE",
+    "taskDefinitionArn": "arn:aws:ecs:ap-northeast-2:707733857262:task-definition/websystem-hlw-back:2",
+    "volumes": [],
+    "tags": []
+}

@@ -37,12 +37,21 @@ export const getProblem = async (req, res) => {
 // - 결과는 { passed, testResults, appliedAffinities } 형태로 반환합니다.
 export const submitCode = async (req, res) => {
   const storyId = Number(req.params.storyId);
-  const { userId, nodeIndex, choiceId, problemId, sourceCode, languageId } =
-    req.body;
-  if (!userId || !sourceCode || !problemId) {
+
+  // authMiddleware를 통해 req.user가 설정됨
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({
+      success: false,
+      error: "Authentication required",
+    });
+  }
+
+  const { nodeIndex, choiceId, problemId, sourceCode, languageId } = req.body;
+  if (!sourceCode || !languageId || !problemId) {
     return res.status(400).json({
       success: false,
-      error: "userId, sourceCode, problemId required",
+      error: "sourceCode, languageId, problemId required",
     });
   }
 
@@ -125,26 +134,6 @@ export const submitCode = async (req, res) => {
       ok,
     };
   });
-
-  // Debug: print grading summary to help find why a correct solution may be
-  // marked as failed. Look for this log in backend console when reproducing.
-  try {
-    console.debug('[submitCode] grading summary', {
-      storyId,
-      problemId,
-      nodeIndex,
-      passed,
-      comparisons: testResults.map((tr) => ({
-        expected_norm: String(tr.expected).replace(/\r?\n/g, '\\n'),
-        stdout_norm: String(tr.stdout ?? '').replace(/\r?\n/g, '\\n'),
-        ok: tr.ok,
-        status: tr.status,
-      })),
-      rawResultsCount: Array.isArray(results) ? results.length : 0,
-    });
-  } catch (e) {
-    // ignore logging errors
-  }
 
   // 통과 시 문제 노드(meta)에 명시된 affinity 효과 적용
   const appliedAffinities = [];

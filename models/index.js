@@ -11,6 +11,7 @@ import heroineModel from "./heroine.js";
 import heroineImageModel from "./heroineImage.js";
 import heroineLikeModel from "./heroineLike.js";
 import storyProblemModel from "./storyProblem.js";
+import blacklistedTokenModel from "./blacklistedToken.js";
 import problemModel from "./problem.js";
 import testcaseModel from "./testcase.js";
 import userCodeModel from "./userCode.js";
@@ -31,6 +32,10 @@ db.HeroineImage = heroineImageModel(sequelize, DataTypes);
 db.HeroineLike = heroineLikeModel(sequelize, DataTypes);
 // 문제/테스트케이스 모델 등록
 db.StoryProblem = storyProblemModel(sequelize, DataTypes);
+
+db.BlacklistedToken = blacklistedTokenModel(sequelize, DataTypes);
+
+// 문제/테스트케이스 모델 등록 (기존 컨트롤러 호환을 위해 JudgeProblem/JudgeTestcase 별칭도 설정)
 db.Problem = problemModel(sequelize, DataTypes);
 db.Testcase = testcaseModel(sequelize, DataTypes);
 db.UserCode = userCodeModel(sequelize, DataTypes);

@@ -1,4 +1,4 @@
-import { CustomError } from '../utils/CustomError.js';
+import { CustomError } from '../utils/customError.js';
 
 export const errorHandler = (err, req, res, next) => {
     // CustomError가 아니면 안전하게 래핑

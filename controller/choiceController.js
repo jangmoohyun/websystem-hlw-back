@@ -11,43 +11,12 @@ import { getScriptNode } from "../service/scriptService.js";
 // 4) 최종적으로 클라이언트에게 action과 네비게이션 정보를 반환합니다.
 
 export const selectChoice = async (req, res) => {
-  // 디버그: 들어온 요청 바디 로깅
-  try {
-    console.log("[selectChoice] incoming body:", JSON.stringify(req.body));
-  } catch (e) {
-    console.log("[selectChoice] incoming body (non-serializable)");
-  }
-  // 인증된 사용자 우선 사용. 인증 정보가 없고 개발 모드인 경우 시드된 테스트 사용자로 대체합니다.
-  let userId = req.user?.id ?? req.body.userId;
-
-  // 개발 전용 폴백: 전달된 userId가 없거나 존재하지 않으면
-  // 개발용 계정(이메일 기준)을 찾아 사용하거나 새로 생성하여 사용합니다.
-  const devEmail = process.env.DEV_USER_EMAIL || "dev_user@example.com";
-  if (userId) {
-    const u = await db.User.findByPk(userId);
-    if (!u) {
-      // 요청된 userId가 DB에 없으면 개발자 계정으로 대체합니다.
-      let dev = await db.User.findOne({ where: { email: devEmail } });
-      if (!dev) {
-        dev = await db.User.create({
-          email: devEmail,
-          password: "devpassword",
-          nickname: "dev",
-        });
-      }
-      userId = dev.id;
-    }
-  } else {
-    // userId가 전달되지 않았으면 개발자 계정이 존재하는지 확인하고 사용합니다.
-    let dev = await db.User.findOne({ where: { email: devEmail } });
-    if (!dev) {
-      dev = await db.User.create({
-        email: devEmail,
-        password: "devpassword",
-        nickname: "dev",
-      });
-    }
-    userId = dev.id;
+  // authMiddleware를 통해 req.user가 설정됨
+  const userId = req.user?.id;
+  if (!userId) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Authentication required" });
   }
 
   const { storyId, currentLineIndex, choice, choiceIndex } = req.body;

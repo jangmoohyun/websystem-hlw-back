@@ -1,5 +1,6 @@
 import express from "express";
 import { asyncHandler } from "../middleware/asyncHandler.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 import * as problemController from "../controller/problemController.js";
 
 const router = express.Router();
@@ -12,6 +13,7 @@ const router = express.Router();
 // POST /problems/:storyId/submit-code
 router.post(
   "/:storyId/submit-code",
+  authMiddleware,
   asyncHandler(problemController.submitCode)
 );
 
