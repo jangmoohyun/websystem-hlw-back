@@ -9,7 +9,6 @@ router.get("/", asyncHandler(storyController.getStories));
 
 // 스토리 상세 + 스크립트
 router.get("/:id", asyncHandler(storyController.getStoryById));
-// 스토리에 연결된 문제 목록 조회(공개 테스트케이스 포함)
-router.get("/:id/problems", asyncHandler(storyController.getProblemsByStory));
+// 문제 목록은 `GET /stories/:id`의 `data.problems`에 포함됩니다. 별도 라우트 제거.
 
 export default router;
