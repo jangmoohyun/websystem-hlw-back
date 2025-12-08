@@ -13,11 +13,6 @@ export default (sequelize, DataTypes) => {
       content: { type: DataTypes.TEXT, allowNull: true },
       level: { type: DataTypes.BIGINT, allowNull: true },
       stdout: { type: DataTypes.STRING(255), allowNull: true },
-      storyId: {
-        type: DataTypes.BIGINT.UNSIGNED,
-        field: "story_id",
-        allowNull: true,
-      },
       description: { type: DataTypes.TEXT, allowNull: true },
     },
     {
@@ -26,20 +21,17 @@ export default (sequelize, DataTypes) => {
     }
   );
 
-  // 연관: 문제는 여러 테스트케이스를 가질 수 있음
   Problem.associate = (models) => {
     Problem.hasMany(models.Testcase, {
       as: "testcases",
       foreignKey: "problem_id",
     });
-    // 각 문제는 하나의 스토리에 연결될 수 있습니다 (옵션)
-    Problem.belongsTo(models.Story, {
-      as: "story",
-      foreignKey: {
-        name: "storyId",
-        field: "story_id",
-        allowNull: true,
-      },
+
+    Problem.belongsToMany(models.Story, {
+      through: models.StoryProblem,
+      as: "stories",
+      foreignKey: "problemId",
+      otherKey: "storyId",
     });
   };
 

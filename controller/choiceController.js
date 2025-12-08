@@ -1,5 +1,6 @@
 import db from "../models/index.js";
 import * as progressService from "../service/progressService.js";
+import { getScriptNode } from "../service/scriptService.js";
 
 // POST /choices/select 핸들러
 // 요청 바디 형식: { storyId, currentLineIndex, choice: { targetIndex, endIndex, heroineName, affinityDelta, branchStoryId, text } }
@@ -13,33 +14,59 @@ export const selectChoice = async (req, res) => {
   // authMiddleware를 통해 req.user가 설정됨
   const userId = req.user?.id;
   if (!userId) {
-    return res.status(401).json({ success: false, message: "Authentication required" });
+    return res
+      .status(401)
+      .json({ success: false, message: "Authentication required" });
   }
 
-  const { storyId, currentLineIndex, choice } = req.body;
+  const { storyId, currentLineIndex, choice, choiceIndex } = req.body;
   if (!choice) {
     return res.status(400).json({ success: false, message: "choice required" });
   }
 
   try {
-    // 1) apply affinity if provided
-    if (choice.heroineName && typeof choice.affinityDelta === "number") {
+    // 스크립트에 저장된 canonical choice가 있으면 그것을 우선 사용합니다 (currentLineIndex+choiceIndex가 제공된 경우)
+    let canonicalChoice = choice;
+    if (
+      typeof currentLineIndex === "number" &&
+      typeof choiceIndex === "number"
+    ) {
+      const node = await getScriptNode(storyId, currentLineIndex);
+      if (node && node.type === "choice" && Array.isArray(node.choices)) {
+        const c = node.choices[choiceIndex];
+        if (c) canonicalChoice = c;
+      }
+    }
+
+    // 1) 히로인 호감도 적용: canonical choice에 호감도 정보가 있으면 적용
+    if (
+      canonicalChoice?.heroineName &&
+      typeof canonicalChoice?.affinityDelta === "number"
+    ) {
       await progressService.applyAffinityChange(
         userId,
         storyId,
-        choice.heroineName,
-        choice.affinityDelta
+        canonicalChoice.heroineName,
+        canonicalChoice.affinityDelta
       );
     }
 
-    // 2) branch to another story if requested
-    if (choice.branchStoryId) {
-      // ensure progress exists and update storyId
+    // 2) 분기 처리: canonical choice에 branchStoryId가 있으면 다른 스토리로 분기
+    const branchId = canonicalChoice?.branchStoryId ?? null;
+    if (branchId) {
+      // 분기 대상 스토리가 존재하는지 확인하여 FK 오류를 방지
+      const branchStory = await db.Story.findByPk(branchId);
+      if (!branchStory) {
+        return res
+          .status(400)
+          .json({ success: false, message: "branchStoryId does not exist" });
+      }
+      // progress 레코드가 존재하도록 보장한 뒤 storyId를 분기 대상으로 변경
       const progress = await progressService.getOrCreateProgress(
         userId,
         storyId
       );
-      progress.storyId = choice.branchStoryId;
+      progress.storyId = branchId;
       progress.lineIndex = 0;
       await progress.save();
 
@@ -47,13 +74,13 @@ export const selectChoice = async (req, res) => {
         success: true,
         result: {
           action: "branch",
-          storyId: choice.branchStoryId,
+          storyId: branchId,
           lineIndex: 0,
         },
       });
     }
 
-    // 3) otherwise, respond with navigation hints (frontend에서 targetIndex를 사용해 위치를 해석)
+    // 3) 그 외에는 네비게이션 힌트를 응답합니다 (프론트는 targetIndex로 위치를 해석)
     return res.json({
       success: true,
       result: {
