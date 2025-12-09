@@ -1,36 +1,39 @@
-import express from 'express';
-import { asyncHandler } from '../middleware/asyncHandler.js';
-import { authMiddleware } from '../middleware/authMiddleware.js';
-import * as progressController from '../controller/progressController.js';
+import express from "express";
+import { asyncHandler } from "../middleware/asyncHandler.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
+import * as progressController from "../controller/progressController.js";
 
 const router = express.Router();
 
 // 전체 세이브 슬롯 목록
-router.get(
-    '/saves',
-    authMiddleware,
-    asyncHandler(progressController.getSaves)
-);
+router.get("/saves", authMiddleware, asyncHandler(progressController.getSaves));
 
 // 세이브 저장/덮어쓰기
-router.put(
-    '/save',
-    authMiddleware,
-    asyncHandler(progressController.saveGame)
-);
+router.put("/save", authMiddleware, asyncHandler(progressController.saveGame));
 
 // 세이브 불러오기
-router.get(
-    '/save',
-    authMiddleware,
-    asyncHandler(progressController.loadGame)
-);
+router.get("/save", authMiddleware, asyncHandler(progressController.loadGame));
 
 // 선택지 선택 + 호감도 변경
 router.patch(
-    '/choice',
-    authMiddleware,
-    asyncHandler(progressController.applyChoice)
+  "/choice",
+  authMiddleware,
+  asyncHandler(progressController.applyChoice)
+);
+
+// 엔딩(호감도 기반 스토리 이동) 호출
+router.post(
+  "/jump-affinity",
+  authMiddleware,
+  asyncHandler(progressController.jumpAffinity)
+);
+
+// Debug route (no auth) to verify routing/CORS from frontend during troubleshooting
+router.get(
+  "/debug-jump-affinity",
+  asyncHandler(async (req, res) => {
+    res.json({ success: true, message: "debug route reachable" });
+  })
 );
 
 export default router;

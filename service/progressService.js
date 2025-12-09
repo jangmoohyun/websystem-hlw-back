@@ -1,8 +1,8 @@
-import { getScriptNode } from './scriptService.js';
-import db from '../models/index.js';
-import { CustomError } from '../utils/customError.js';
-import { ProgressErrorCode } from '../errors/progressErrorCode.js';
-import { StoryErrorCode } from '../errors/storyErrorCode.js';
+import { getScriptNode } from "./scriptService.js";
+import db from "../models/index.js";
+import { CustomError } from "../utils/customError.js";
+import { ProgressErrorCode } from "../errors/progressErrorCode.js";
+import { StoryErrorCode } from "../errors/storyErrorCode.js";
 
 const { Progress, Story, Script, HeroineLike, Heroine } = db;
 
@@ -311,7 +311,6 @@ export const applyAffinityChange = async (
   return like;
 };
 
-
 // ===== 엔딩 분기용 유틸 함수들 =====
 
 // line(JSON 배열) + 호감도 배열로, 어느 엔딩 index로 갈지 결정
@@ -342,12 +341,12 @@ const decideEndingIndex = (nodes, heroineLikes, threshold = 80) => {
   if (chosenHeroineId === null) {
     // 솔로 엔딩: solo=true 또는 heroineId 없는 ending 노드
     endingNode = nodes.find(
-      (n) => n.type === 'ending' && (n.solo === true || n.heroineId == null)
+      (n) => n.type === "ending" && (n.solo === true || n.heroineId == null)
     );
   } else {
     // 히로인 엔딩: heroineId 매칭되는 ending 노드
     endingNode = nodes.find(
-      (n) => n.type === 'ending' && n.heroineId === chosenHeroineId
+      (n) => n.type === "ending" && n.heroineId === chosenHeroineId
     );
   }
 
@@ -355,8 +354,8 @@ const decideEndingIndex = (nodes, heroineLikes, threshold = 80) => {
 };
 
 // 현재 위치에서 type === 'ending' 트리거를 만나면,
-// 각 히로인 호감도 기준으로 실제 엔딩 index로 점프하는 함수
-// - 사용 예: 프론트에서 ending 트리거 도달 시 호출
+// 각 히로인 호감도 기준으로 실제 엔딩 함수
+// - 사용 예: 프론트에서 ending 트리거 도달 시 호출index로 점프하는
 export const jumpToEnding = async (userId, { slot, storyId }) => {
   // 1) progress + heroineLikes 조회
   const progress = await Progress.findOne({
@@ -364,7 +363,7 @@ export const jumpToEnding = async (userId, { slot, storyId }) => {
     include: [
       {
         model: HeroineLike,
-        as: 'heroineLikes',
+        as: "heroineLikes",
       },
     ],
   });
@@ -376,14 +375,14 @@ export const jumpToEnding = async (userId, { slot, storyId }) => {
   // 2) 해당 story의 전체 스크립트 JSON 가져오기
   const script = await Script.findOne({
     where: { storyId },
-    attributes: ['line'],
+    attributes: ["line"],
   });
 
   if (!script || !Array.isArray(script.line)) {
     throw new CustomError({
       status: 500,
-      code: 'SCRIPT_NOT_FOUND',
-      message: '엔딩 스크립트를 찾을 수 없습니다.',
+      code: "SCRIPT_NOT_FOUND",
+      message: "엔딩 스크립트를 찾을 수 없습니다.",
     });
   }
 
@@ -399,8 +398,8 @@ export const jumpToEnding = async (userId, { slot, storyId }) => {
   if (endingIndex == null) {
     throw new CustomError({
       status: 500,
-      code: 'ENDING_INDEX_NOT_FOUND',
-      message: '조건에 맞는 엔딩 노드를 찾을 수 없습니다.',
+      code: "ENDING_INDEX_NOT_FOUND",
+      message: "조건에 맞는 엔딩 노드를 찾을 수 없습니다.",
     });
   }
 
@@ -412,5 +411,71 @@ export const jumpToEnding = async (userId, { slot, storyId }) => {
     storyId,
     slot,
     nextIndex: endingIndex,
+  };
+};
+
+// 새로운 엔딩 분기: 히로인 호감도(>=90)를 보고 특정 스토리로 이동
+// - 후보가 여러명일 경우 likeValue가 가장 높은 히로인 선택
+// - 선택된 히로인의 언어에 따라 이동할 스토리코드 매핑:
+//    C -> '13', Java -> '14', Python -> '15'
+// - 후보가 없으면 스토리코드 '16'으로 이동
+export const jumpToAffinityStory = async (userId, { slot }) => {
+  // allow optional slot: if slot is provided use it, otherwise find any progress for user
+  const whereClause = typeof slot === "number" ? { userId, slot } : { userId };
+
+  const progress = await Progress.findOne({
+    where: whereClause,
+    include: [
+      {
+        model: HeroineLike,
+        as: "heroineLikes",
+      },
+    ],
+  });
+
+  if (!progress) throw CustomError.from(ProgressErrorCode.NOT_FOUND);
+
+  const heroineLikes = (progress.heroineLikes || []).map((hl) => ({
+    heroineId: hl.heroineId,
+    likeValue: hl.likeValue || 0,
+  }));
+
+  // 후보: likeValue >= 90
+  const candidates = heroineLikes.filter((h) => (h.likeValue || 0) >= 90);
+
+  let targetStoryCode = "16"; // default if no candidate
+
+  if (candidates.length > 0) {
+    // pick highest likeValue
+    const best = candidates.reduce((max, cur) =>
+      cur.likeValue > max.likeValue ? cur : max
+    );
+
+    // find heroine to inspect language
+    const heroine = await Heroine.findByPk(best.heroineId);
+    const lang =
+      heroine && heroine.language ? String(heroine.language).toLowerCase() : "";
+
+    if (lang.includes("c")) targetStoryCode = "13";
+    else if (lang.includes("java")) targetStoryCode = "14";
+    else if (lang.includes("python")) targetStoryCode = "15";
+    else targetStoryCode = "16";
+  }
+
+  const nextStory = await Story.findOne({
+    where: { storyCode: targetStoryCode },
+  });
+  if (!nextStory) throw CustomError.from(StoryErrorCode.NOT_FOUND);
+
+  // 이동: 시작 인덱스 1
+  progress.storyId = nextStory.id;
+  progress.lineIndex = 1;
+  await progress.save();
+
+  return {
+    hasNext: true,
+    storyId: nextStory.id,
+    storyCode: nextStory.storyCode,
+    lineIndex: 1,
   };
 };
