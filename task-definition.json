@@ -31,6 +31,14 @@
                 {
                     "name": "FRONTEND_URL",
                     "value": "https://d16lvf4xzha7eb.cloudfront.net"
+                },
+                {
+                    "name": "JUDGE0_URL",
+                    "value": "arn:aws:secretsmanager:ap-northeast-2:707733857262:secret:JUDGE0_URL-Is8jDX"
+                },
+                {
+                    "name": "JUDGE0_API_HOST",
+                    "value": "arn:aws:secretsmanager:ap-northeast-2:707733857262:secret:JUDGE0_API_HOST-iaXDyg"
                 }
             ],
             "secrets": [
@@ -45,6 +53,10 @@
                 {
                     "name": "DB_PASS",
                     "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:707733857262:secret:hlw-DB_PASSWORD-Z03qP8" 
+                },
+                {
+                    "name": "JUDGE0_API_KEY",
+                    "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:707733857262:secret:JUDGE0_API_KEY-yo9aea"
                 }
             ],
             "environmentFiles": [],
