@@ -34,11 +34,11 @@
                 },
                 {
                     "name": "JUDGE0_URL",
-                    "value": "arn:aws:secretsmanager:ap-northeast-2:707733857262:secret:JUDGE0_URL-Is8jDX"
+                    "value": "https://judge0-ce.p.rapidapi.com"
                 },
                 {
                     "name": "JUDGE0_API_HOST",
-                    "value": "arn:aws:secretsmanager:ap-northeast-2:707733857262:secret:JUDGE0_API_HOST-iaXDyg"
+                    "value": "judge0-ce.p.rapidapi.com"
                 }
             ],
             "secrets": [
